@@ -1,0 +1,429 @@
+{
+  "repository": "https://github.com/kooriookami/yugioh-card",
+  "revision": "92462bbd2aa3aa0075ebcc9b633bdc05137fd7ac",
+  "sourceDirectory": "src/assets/yugioh-card",
+  "fonts": [
+    "ygo-sc",
+    "ygo-tc",
+    "ygo-jp",
+    "ygo-en",
+    "ygo-en-name",
+    "ygo-en-race",
+    "ygo-en-italic",
+    "ygo-atk-def",
+    "ygo-link",
+    "ygo-password"
+  ],
+  "files": [
+    {
+      "path": "yugioh/font/ygo-sc.woff2",
+      "sha256": "50bc8726f38171dabd21197c0191f2f55facff54927a5afaefdd5304df8b6e80",
+      "bytes": 9374868
+    },
+    {
+      "path": "yugioh/font/ygo-tc.woff2",
+      "sha256": "aee0df84789ad69e0df8807efc40778d7ebd0fa6671eb100c432969a673fc87b",
+      "bytes": 7075504
+    },
+    {
+      "path": "yugioh/font/ygo-jp.woff2",
+      "sha256": "7630d0eb0fa12e063ef2e02788b8bb00ef154d3b8816ee67717d8fa3f4f034da",
+      "bytes": 1950384
+    },
+    {
+      "path": "yugioh/font/ygo-en.woff2",
+      "sha256": "326db7d8ce698ddc5ed4ceaf44ae88853786a7cb5652a3c9c495b9e9a7249907",
+      "bytes": 14992
+    },
+    {
+      "path": "yugioh/font/ygo-en-name.woff2",
+      "sha256": "9e1d645e479b10c75a4b5b613752b3865197f127de1cac92db3e52c1331690e0",
+      "bytes": 12224
+    },
+    {
+      "path": "yugioh/font/ygo-en-race.woff2",
+      "sha256": "c41e4562198e54ac765a98f8c19e90fccc51743c5add3923ede1ed49226fdce1",
+      "bytes": 16852
+    },
+    {
+      "path": "yugioh/font/ygo-en-italic.woff2",
+      "sha256": "c1b9b5f2b7c1c12122a6c40cdac015bc1796979a4af0dc3b145e8b14c1f10efc",
+      "bytes": 21316
+    },
+    {
+      "path": "yugioh/font/ygo-atk-def.woff2",
+      "sha256": "c43dab5802df0fc674a07cc41ae9c1d3ea2a1b5d90b0c11e0877e862632462c3",
+      "bytes": 9884
+    },
+    {
+      "path": "yugioh/font/ygo-link.woff2",
+      "sha256": "17c620f2c51bb7f04991955081426118cbf4745a0d609d64092df45d5a74eb47",
+      "bytes": 5896
+    },
+    {
+      "path": "yugioh/font/ygo-password.woff2",
+      "sha256": "26c1ee6f7b6b8d80edfe99020a7cf2deb803052145ed6d3ee84783fb72a308a0",
+      "bytes": 16784
+    },
+    {
+      "path": "yugioh/image/arrow-down-off.png",
+      "sha256": "5e0025c6a4816d51621e3a678ab59a767e160ba6ef882e331548f12d6fbd2648",
+      "bytes": 12057
+    },
+    {
+      "path": "yugioh/image/arrow-down-on.png",
+      "sha256": "16b56b81f7876f41661345c5575be5d539253f3d87d5eb488b9242578eac8060",
+      "bytes": 13924
+    },
+    {
+      "path": "yugioh/image/arrow-left-down-off.png",
+      "sha256": "452bbd3fe846751c18ef9788c7b1fa73fb47bfd86109c0c36935c04909cb68d4",
+      "bytes": 14523
+    },
+    {
+      "path": "yugioh/image/arrow-left-down-on.png",
+      "sha256": "e64788bb2e84fea506fc81b0070a3f3fbac353c9b2d1c436ed8b82b2fddf317c",
+      "bytes": 13779
+    },
+    {
+      "path": "yugioh/image/arrow-left-off.png",
+      "sha256": "2015683041ab5319637e3262c58e3f551340c46b5aef1b94509acb5afa50501c",
+      "bytes": 11859
+    },
+    {
+      "path": "yugioh/image/arrow-left-on.png",
+      "sha256": "9504113c320515037f27c7f301587db65d3a7d15325e6e3eabfe48e2b7b239f2",
+      "bytes": 14292
+    },
+    {
+      "path": "yugioh/image/arrow-left-up-off.png",
+      "sha256": "22ffa595827638170f1ab9a869037790ed0be30c7cb4dab4551dcede152afbf8",
+      "bytes": 12759
+    },
+    {
+      "path": "yugioh/image/arrow-left-up-on.png",
+      "sha256": "c8405a5e72c257a2400ab022d1ffc969024afafe6b58bee6b15d9740bd2ebaea",
+      "bytes": 13075
+    },
+    {
+      "path": "yugioh/image/arrow-right-down-off.png",
+      "sha256": "457eadf8aac53aaa851f12e815cde9627aed92787b8aa29f56c9699006a8e9d4",
+      "bytes": 14829
+    },
+    {
+      "path": "yugioh/image/arrow-right-down-on.png",
+      "sha256": "aa49f4fc9a657c0e98ff1fad313586257327b6199c4836b5afce058ff6d93eb1",
+      "bytes": 12789
+    },
+    {
+      "path": "yugioh/image/arrow-right-off.png",
+      "sha256": "07a8ab1147fe0cb24c4b51bf6b4691a83b2a57b6d4f284b98cb1d4cc2fb60171",
+      "bytes": 13502
+    },
+    {
+      "path": "yugioh/image/arrow-right-on.png",
+      "sha256": "eefd546c6fff6e77d2b607bca6555200f4f47285e53bb882268bdd1b7a278603",
+      "bytes": 13804
+    },
+    {
+      "path": "yugioh/image/arrow-right-up-off.png",
+      "sha256": "6f4efc4311fc71c88592a18ccc4589dfb77717bc358f90cb6b4c29f35d2d7a00",
+      "bytes": 12725
+    },
+    {
+      "path": "yugioh/image/arrow-right-up-on.png",
+      "sha256": "90d28c237938717e1933fb6bcbb2234ad148c81107ab65ff88e7e8796ffdc068",
+      "bytes": 13837
+    },
+    {
+      "path": "yugioh/image/arrow-up-off.png",
+      "sha256": "96afc9e4b27e7a4a770cb2fd7167941c6e1aa85a23b87e40b108e50850c40f16",
+      "bytes": 11923
+    },
+    {
+      "path": "yugioh/image/arrow-up-on.png",
+      "sha256": "38e0597b0aae83cde4ae075d3b6723486c23cf3d9a2f22b8bb45e00e5b2f449a",
+      "bytes": 13629
+    },
+    {
+      "path": "yugioh/image/atk-def.svg",
+      "sha256": "c2bfb38eae44a9671b39b6883700d8fc1e73f000fbb12d18c308065946371c40",
+      "bytes": 2679
+    },
+    {
+      "path": "yugioh/image/atk-link.svg",
+      "sha256": "49f893a8455aa88773949d114e97c9f7781180565644a4183f44fe9b31076dc5",
+      "bytes": 1773
+    },
+    {
+      "path": "yugioh/image/attribute-dark-en.png",
+      "sha256": "8d29ae91c61b65b7c32c448b793f898cd8688e266acdad063dd01015644c230e",
+      "bytes": 23650
+    },
+    {
+      "path": "yugioh/image/attribute-dark-jp.png",
+      "sha256": "260153669dbe9ebcbc92b5ed6f0a29c9d9f64aae0c78eff95d5c58f7007c9a08",
+      "bytes": 24046
+    },
+    {
+      "path": "yugioh/image/attribute-dark.png",
+      "sha256": "3be4a159513e36f91b822bf1cdc86915c5f49153e0733e01c61a00452b204b62",
+      "bytes": 22844
+    },
+    {
+      "path": "yugioh/image/attribute-divine-en.png",
+      "sha256": "2d214735214f91792f4592394730c3350f80f0595a492c2b0eaa8ea8fee96131",
+      "bytes": 23973
+    },
+    {
+      "path": "yugioh/image/attribute-divine-jp.png",
+      "sha256": "96a54b3dfca003822c40adf3a5e918b74423b35a1d812cb3963ad8bd9e55b870",
+      "bytes": 24236
+    },
+    {
+      "path": "yugioh/image/attribute-divine.png",
+      "sha256": "18100354c44635cca916e11aee74059320235b33c625051d424ef9e3525def82",
+      "bytes": 22935
+    },
+    {
+      "path": "yugioh/image/attribute-earth-en.png",
+      "sha256": "0aaa9831a2ac1804dbea67d2ac19a5f041c1b52c25d83649b43b1c431a01ca14",
+      "bytes": 24731
+    },
+    {
+      "path": "yugioh/image/attribute-earth-jp.png",
+      "sha256": "c83406f33eb38036827db26dc17b6c9a590f69ede9168dc2ff2e06bf292617aa",
+      "bytes": 25006
+    },
+    {
+      "path": "yugioh/image/attribute-earth.png",
+      "sha256": "881c8da736134c6330ab29fb5c583b91e6b764e16d90a9f68c5d7e2ab57c7902",
+      "bytes": 24763
+    },
+    {
+      "path": "yugioh/image/attribute-fire-en.png",
+      "sha256": "6ff381f407e37bd1a30dca2b2ae8cff424cab9a0f5efbea684ecdd8b46c7e3e6",
+      "bytes": 27237
+    },
+    {
+      "path": "yugioh/image/attribute-fire-jp.png",
+      "sha256": "e69e0376c09f4864c9a358013a69812965487fa0161299f286a2347ddcfdaaac",
+      "bytes": 27800
+    },
+    {
+      "path": "yugioh/image/attribute-fire.png",
+      "sha256": "cf612c2ce7e79296efed2b6852be3fba7732bcd8a6b376d4b3777300d359b162",
+      "bytes": 26961
+    },
+    {
+      "path": "yugioh/image/attribute-light-en.png",
+      "sha256": "82b11bf7e6a0e26520f90228cc16d8aa1d2ee9521da24c1430b56b4b687a3d2e",
+      "bytes": 23570
+    },
+    {
+      "path": "yugioh/image/attribute-light-jp.png",
+      "sha256": "862a156f40ad3e372625b7dbe8e0c53f3784620294879195237ce16adda4f217",
+      "bytes": 24232
+    },
+    {
+      "path": "yugioh/image/attribute-light.png",
+      "sha256": "ba56140760d6bb0abaaa63e4128b8693acd066a6a7834317cbe1e3fcca3e5932",
+      "bytes": 23003
+    },
+    {
+      "path": "yugioh/image/attribute-rare.png",
+      "sha256": "5896d7bece246bb541504b86a19e368dd6d8b866e7505c33a0d09e76ebc118f3",
+      "bytes": 2404
+    },
+    {
+      "path": "yugioh/image/attribute-spell-en.png",
+      "sha256": "493d6da1d0b42360d10ca72c81ee7a631ff2651a27f4eaf53bd2ceefc1ae167e",
+      "bytes": 30983
+    },
+    {
+      "path": "yugioh/image/attribute-spell-jp.png",
+      "sha256": "971a507ab59ff7117a0056c1b66812d424b4cdf55d7b526a8000fea5640ab145",
+      "bytes": 31465
+    },
+    {
+      "path": "yugioh/image/attribute-spell.png",
+      "sha256": "fe8bdedc914af00bcecc17087bb2c641506375d73a79791f1bf991ac27ffaba4",
+      "bytes": 30366
+    },
+    {
+      "path": "yugioh/image/attribute-trap-en.png",
+      "sha256": "ab30ca56b95c69b9e9103c2f123b24f74396bff1ed8a647e093060310b3f23be",
+      "bytes": 26099
+    },
+    {
+      "path": "yugioh/image/attribute-trap-jp.png",
+      "sha256": "3630e2380d9b569e23fe20ac21c1b28dbdb3c247f49c381e436cb349ae0cc214",
+      "bytes": 26562
+    },
+    {
+      "path": "yugioh/image/attribute-trap.png",
+      "sha256": "a51264630ee5087d0f6ea04dce3793a5455ee732343619b9b3d4aeae49d69bb1",
+      "bytes": 25857
+    },
+    {
+      "path": "yugioh/image/attribute-water-en.png",
+      "sha256": "512efbdede42a68b91048ab038c54e3ead31f1e770207ff775a16f435c9a5b75",
+      "bytes": 29623
+    },
+    {
+      "path": "yugioh/image/attribute-water-jp.png",
+      "sha256": "19a63e74cfbc20eaa8be4df19e0dbb51168b1b5b8c9b454cf7c831a54aba4ba7",
+      "bytes": 29750
+    },
+    {
+      "path": "yugioh/image/attribute-water.png",
+      "sha256": "e2f1b887e4ae7d0e93b2a62bda4bd2ca4608a054177469e2189923e800da5b11",
+      "bytes": 28824
+    },
+    {
+      "path": "yugioh/image/attribute-wind-en.png",
+      "sha256": "21420278819eb093628bf00ea74c25b9371b549eb98ebccb7059f076664f1e6f",
+      "bytes": 28742
+    },
+    {
+      "path": "yugioh/image/attribute-wind-jp.png",
+      "sha256": "8fe2d8b935df6bf18a663542da61bba3f72a1d43ec05fbb1ea22a74d4db94a02",
+      "bytes": 28609
+    },
+    {
+      "path": "yugioh/image/attribute-wind.png",
+      "sha256": "546f12d05e7e3aaff66b0e49408e7a70ce636434cc2c3793f8af20a40ae2776e",
+      "bytes": 28168
+    },
+    {
+      "path": "yugioh/image/card-effect-pendulum.png",
+      "sha256": "3a40b4198a2aa3393d91762b93d512c7c7403db758c71c249d55b43215f2138c",
+      "bytes": 1198895
+    },
+    {
+      "path": "yugioh/image/card-effect.png",
+      "sha256": "600c3a5fc84deb4d0dee243b4879e69b3237819b2e8f3e968c40f0055e71303b",
+      "bytes": 1872756
+    },
+    {
+      "path": "yugioh/image/card-fusion-pendulum.png",
+      "sha256": "959f391eae4796daebed9dfa6eb1321701536b17f0469d940934167ac8555187",
+      "bytes": 944692
+    },
+    {
+      "path": "yugioh/image/card-fusion.png",
+      "sha256": "8f42589e23cf20a2a365a4b710206a35da49a7e772a82089152a64d2d8a69c72",
+      "bytes": 1246897
+    },
+    {
+      "path": "yugioh/image/card-link.png",
+      "sha256": "5912784c3aea5ba326b424803ac27a1f9a681944d547550b2ced8de1aa136a20",
+      "bytes": 2225858
+    },
+    {
+      "path": "yugioh/image/card-mask-pendulum.png",
+      "sha256": "27cf8592b3b203bc0ab9dbb73bb31e99885dedc8fd98c26d938dde52981b48c7",
+      "bytes": 971151
+    },
+    {
+      "path": "yugioh/image/card-mask.png",
+      "sha256": "756d31de597cc8dfa6b04f1a044d566e64b5ff93f5ab9c1c2ae866dcdac9c7fb",
+      "bytes": 134259
+    },
+    {
+      "path": "yugioh/image/card-normal-pendulum.png",
+      "sha256": "5dfa5abb0c03d010bdbd555460d849ffa1bce251a4e41b6ce6619500360e2bbd",
+      "bytes": 957692
+    },
+    {
+      "path": "yugioh/image/card-normal.png",
+      "sha256": "b65fd49945cc802e1597883fde54ea46d8364a0bca38a1978c8204cec2f8e368",
+      "bytes": 1230563
+    },
+    {
+      "path": "yugioh/image/card-ritual-pendulum.png",
+      "sha256": "7b57518a7f23af2c63a1a77721e7ca8b7e95cdae8f74157281b3ecd654addcbc",
+      "bytes": 1115265
+    },
+    {
+      "path": "yugioh/image/card-ritual.png",
+      "sha256": "1336588bd8b5363920c6a034a664f7ff73a191cb2d32197ef70b5981dd44dc97",
+      "bytes": 1689319
+    },
+    {
+      "path": "yugioh/image/card-spell.png",
+      "sha256": "c59fdec8bcdfd3222641aa724f88fe136cb90d36b40cd03074efa957dbff64a4",
+      "bytes": 1759863
+    },
+    {
+      "path": "yugioh/image/card-synchro-pendulum.png",
+      "sha256": "e06c183bf1c200d4bdb23f26b8ea027f45edc67afa537984fcf6ffe6d77ad7b3",
+      "bytes": 1088832
+    },
+    {
+      "path": "yugioh/image/card-synchro.png",
+      "sha256": "86c68ed1b79da0a0290c95ee4e04ae67daebe6ec249d13414427554f6fd53f18",
+      "bytes": 1627955
+    },
+    {
+      "path": "yugioh/image/card-token.png",
+      "sha256": "8d2141cbc3bd6c85432b9dd76545bd92cc8d78b0a43986b1ff9f91f30d4e2f16",
+      "bytes": 1057428
+    },
+    {
+      "path": "yugioh/image/card-trap.png",
+      "sha256": "7e91510eef55a28b991b4d936f45d5f3d55cf406b8a9b85a5953e8a9d961b3f5",
+      "bytes": 2091505
+    },
+    {
+      "path": "yugioh/image/card-xyz-pendulum.png",
+      "sha256": "64e4cc870b7aef78b54e81dfe54c4f8e8b03e37418bcf72ec8615cb5487bc76f",
+      "bytes": 1251664
+    },
+    {
+      "path": "yugioh/image/card-xyz.png",
+      "sha256": "c347b2720d67dc3b941d2ac900cce34b836f329dfa57b22f61c9d16ae1be3014",
+      "bytes": 2195182
+    },
+    {
+      "path": "yugioh/image/icon-continuous.png",
+      "sha256": "264430f0a04f16fe629ff87aaa25adcc696109c46e58ebafed309d0f86593d43",
+      "bytes": 13814
+    },
+    {
+      "path": "yugioh/image/icon-counter.png",
+      "sha256": "2a347c32e8d0a6255311574dd164bd0c4e1f2eaac392f5e12a4ff71869529d42",
+      "bytes": 13827
+    },
+    {
+      "path": "yugioh/image/icon-equip.png",
+      "sha256": "caf48cab689d8a987f5f558173399ba0b12a97ded66e26f257cb718fb2b84771",
+      "bytes": 13236
+    },
+    {
+      "path": "yugioh/image/icon-field.png",
+      "sha256": "aca3b2f652486c8023b4f5c5517b6a1e049d2c4350dc510d77b06dcce745145a",
+      "bytes": 13988
+    },
+    {
+      "path": "yugioh/image/icon-quick-play.png",
+      "sha256": "48f5b6defcf9754d54ec8f53b9a3288c6fd925ca729f0cc4f8e3630415386ccd",
+      "bytes": 15135
+    },
+    {
+      "path": "yugioh/image/icon-ritual.png",
+      "sha256": "a5a81488ccb991bba2c43b4941b6f8183cd9f003ddaaf78a19600b9a21b5ebe9",
+      "bytes": 13186
+    },
+    {
+      "path": "yugioh/image/level.png",
+      "sha256": "a162207062d75a1c350aa9bf1e1775af835edcbb8968e571f615c74f5d111af7",
+      "bytes": 15944
+    },
+    {
+      "path": "yugioh/image/rank.png",
+      "sha256": "9e5efe839106a339ed3cf82bcd0f207a7e1983df9a0e1abd7e98eca8258a1a41",
+      "bytes": 16561
+    }
+  ]
+}
