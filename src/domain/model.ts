@@ -32,7 +32,28 @@ export type TemplateId =
   | "revive"
   | "summon"
   | "self-summon"
-  | "boost";
+  | "boost"
+  | "damage"
+  | "heal"
+  | "mill-top"
+  | "to-deck"
+  | "send-grave"
+  | "discard-hand"
+  | "change-position"
+  | "control"
+  | "negate-activation"
+  | "negate-effect"
+  | "disable"
+  | "equip"
+  | "add-counter"
+  | "remove-counter"
+  | "attach-material"
+  | "detach-material"
+  | "set-spelltrap"
+  | "declare-race"
+  | "declare-attribute"
+  | "sequence"
+  | "custom-effect";
 export type Trigger =
   | "activate"
   | "ignition"
@@ -41,7 +62,20 @@ export type Trigger =
   | "summon-or-special"
   | "flip"
   | "sent-to-grave"
-  | "quick";
+  | "quick"
+  | "chain"
+  | "destroyed"
+  | "banished"
+  | "to-hand"
+  | "to-deck"
+  | "battle-destroying"
+  | "battle-destroyed"
+  | "damage"
+  | "attack-announce"
+  | "standby"
+  | "end-phase"
+  | "any-summon"
+  | "any-special-summon";
 export type Zone =
   | "deck"
   | "hand"
@@ -50,12 +84,23 @@ export type Zone =
   | "monster"
   | "spelltrap"
   | "banished"
-  | "hand-grave";
+  | "hand-grave"
+  | "extra";
 export type PlayerScope = "self" | "opponent" | "both";
 export type CountMode =
   "none" | "soft" | "name-use" | "name-activate" | "shared-use";
 export type CostKind =
-  "none" | "discard" | "send-hand" | "banish-self" | "send-self" | "lp";
+  | "none"
+  | "discard"
+  | "send-hand"
+  | "banish-self"
+  | "send-self"
+  | "lp"
+  | "release-self"
+  | "release-monster"
+  | "banish-grave"
+  | "detach"
+  | "remove-counter";
 export interface CardFilter {
   setcode?: number;
   kind?: "any" | "monster" | "spell" | "trap";
@@ -65,8 +110,75 @@ export interface CardFilter {
   minLevel?: number;
   excludeSelfName?: boolean;
   faceup?: boolean;
+  codes?: number[];
+  minAttack?: number;
+  maxAttack?: number;
+  minDefense?: number;
+  maxDefense?: number;
+  minRank?: number;
+  maxRank?: number;
+  minLink?: number;
+  maxLink?: number;
+  tuner?: boolean;
+  extraDeck?: boolean;
+  /** Additional predicate body expression; variables c,e,tp are available. */
+  expression?: string;
 }
-export interface EffectBlock {
+export type OperationAction = Exclude<
+  TemplateId,
+  "self-summon" | "sequence" | "custom-effect"
+>;
+export type OperationSelection =
+  "target" | "select" | "all" | "self" | "previous";
+export type OperationPosition =
+  "faceup-attack" | "faceup-defense" | "facedown-defense";
+export interface OperationOptions {
+  value?: number;
+  counterType?: number;
+  position?: OperationPosition;
+  destination?: "shuffle" | "top" | "bottom";
+  duration?: "turn" | "permanent";
+}
+export interface EffectOperation extends OperationOptions {
+  uid: string;
+  action: OperationAction;
+  amount: number;
+  source: Zone;
+  players: PlayerScope;
+  filter: CardFilter;
+  selection: OperationSelection;
+  /** Each step depends on the immediately preceding step's actual result. */
+  next: "always" | "if-success" | "if-failed";
+  timing?: "separate" | "together";
+  optional: boolean;
+  attack: number;
+  defense: number;
+}
+export interface AdvancedEffect {
+  type: string;
+  code: string;
+  category?: string;
+  property?: string;
+  value?: string;
+  reset?: string;
+  range?: string;
+  targetRange?: [number, number];
+  requiredCore?: TargetCore;
+  /** Lua function bodies, with the engine's ordinary callback arguments. */
+  condition?: string;
+  cost?: string;
+  target?: string;
+  operation?: string;
+  /** Function body used instead of a constant SetValue when present. */
+  valueFunction?: string;
+  callbackArgs?: Partial<
+    Record<
+      "condition" | "cost" | "target" | "operation" | "valueFunction",
+      string
+    >
+  >;
+}
+export interface EffectBlock extends OperationOptions {
   uid: string;
   template: TemplateId;
   trigger: Trigger;
@@ -86,6 +198,8 @@ export interface EffectBlock {
   condition: "none" | "no-monsters" | "opponent-only";
   scope?: "monster" | "pendulum";
   range?: "field" | "hand" | "grave" | "banished";
+  operations?: EffectOperation[];
+  advanced?: AdvancedEffect;
 }
 export interface SummonProcedure {
   mode: "none" | "synchro" | "xyz" | "link" | "fusion";
@@ -235,25 +349,45 @@ export function createEffect(
   template: TemplateId = "search",
   card?: Card,
 ): EffectBlock {
-  const source: Zone = ["search", "mill", "draw"].includes(template)
+  const source: Zone = ["search", "mill", "draw", "mill-top"].includes(template)
     ? "deck"
     : ["recover", "revive", "banish"].includes(template)
       ? "grave"
-      : template === "summon"
-        ? "hand-grave"
-        : "field";
+      : template === "discard-hand"
+        ? "hand"
+        : template === "set-spelltrap"
+          ? "hand"
+          : template === "summon"
+            ? "hand-grave"
+            : "field";
   return {
     uid: uid(),
     template,
-    trigger:
-      card && ["spell", "trap"].includes(card.kind) ? "activate" : "ignition",
+    trigger: ["negate-activation", "negate-effect"].includes(template)
+      ? "chain"
+      : card && ["spell", "trap"].includes(card.kind)
+        ? "activate"
+        : "ignition",
     description: "",
     sourceText: "",
     count: "none",
     amount: 1,
     source,
-    players: "self",
-    filter: { kind: "monster" },
+    players: [
+      "damage",
+      "control",
+      "negate-activation",
+      "negate-effect",
+    ].includes(template)
+      ? "opponent"
+      : "self",
+    filter: {
+      kind: ["add-counter", "remove-counter"].includes(template)
+        ? "any"
+        : template === "set-spelltrap"
+          ? "spell"
+          : "monster",
+    },
     cost: "none",
     costAmount: 1,
     optional: true,
@@ -261,5 +395,62 @@ export function createEffect(
     defense: 0,
     condition: template === "self-summon" ? "opponent-only" : "none",
     scope: "monster",
+    ...(["damage", "heal"].includes(template) ? { value: 800 } : {}),
+    ...(["add-counter", "remove-counter"].includes(template)
+      ? { counterType: 0x1001, value: 1 }
+      : {}),
+    ...(template === "sequence"
+      ? { operations: [createOperation("draw")] }
+      : {}),
+    ...(template === "custom-effect"
+      ? {
+          advanced: {
+            type: "EFFECT_TYPE_SINGLE",
+            code: "EFFECT_UPDATE_ATTACK",
+            property: "EFFECT_FLAG_SINGLE_RANGE",
+            value: "500",
+          },
+        }
+      : {}),
+  };
+}
+
+export function createOperation(
+  action: OperationAction = "draw",
+): EffectOperation {
+  const block = createEffect(action);
+  return {
+    uid: uid(),
+    action,
+    amount: block.amount,
+    source: block.source,
+    players: block.players,
+    filter: block.filter,
+    selection: [
+      "recover",
+      "destroy",
+      "bounce",
+      "banish",
+      "revive",
+      "boost",
+      "to-deck",
+      "send-grave",
+      "control",
+      "disable",
+      "change-position",
+      "equip",
+      "declare-race",
+      "declare-attribute",
+    ].includes(action)
+      ? "target"
+      : ["add-counter", "remove-counter", "detach-material"].includes(action)
+        ? "self"
+        : "select",
+    next: "always",
+    optional: false,
+    attack: block.attack,
+    defense: block.defense,
+    value: block.value,
+    counterType: block.counterType,
   };
 }

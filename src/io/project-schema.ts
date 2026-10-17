@@ -2,6 +2,61 @@ import { z } from "zod";
 import { createCard, createProject, type CardProject } from "../domain/model";
 
 const number = z.number().finite();
+const integer = number.int().min(-2147483648).max(4294967295);
+const positive = integer.min(1);
+const nonnegative = integer.min(0);
+const sourceZone = z.enum([
+  "deck",
+  "hand",
+  "grave",
+  "field",
+  "monster",
+  "spelltrap",
+  "banished",
+  "hand-grave",
+  "extra",
+]);
+const playerScope = z.enum(["self", "opponent", "both"]);
+const action = z.enum([
+  "search",
+  "recover",
+  "draw",
+  "mill",
+  "destroy",
+  "bounce",
+  "banish",
+  "revive",
+  "summon",
+  "boost",
+  "damage",
+  "heal",
+  "mill-top",
+  "to-deck",
+  "send-grave",
+  "discard-hand",
+  "change-position",
+  "control",
+  "negate-activation",
+  "negate-effect",
+  "disable",
+  "equip",
+  "add-counter",
+  "remove-counter",
+  "attach-material",
+  "detach-material",
+  "set-spelltrap",
+  "declare-race",
+  "declare-attribute",
+]);
+const operationOptions = {
+  value: integer.optional(),
+  counterType: nonnegative.max(65535).optional(),
+  position: z
+    .enum(["faceup-attack", "faceup-defense", "facedown-defense"])
+    .optional(),
+  destination: z.enum(["shuffle", "top", "bottom"]).optional(),
+  duration: z.enum(["turn", "permanent"]).optional(),
+};
 const attribute = z.enum([
   "dark",
   "light",
@@ -20,6 +75,59 @@ const filter = z.object({
   minLevel: number.optional(),
   excludeSelfName: z.boolean().optional(),
   faceup: z.boolean().optional(),
+  codes: z.array(positive).max(256).optional(),
+  minAttack: integer.optional(),
+  maxAttack: integer.optional(),
+  minDefense: integer.optional(),
+  maxDefense: integer.optional(),
+  minRank: nonnegative.optional(),
+  maxRank: nonnegative.optional(),
+  minLink: nonnegative.optional(),
+  maxLink: nonnegative.optional(),
+  tuner: z.boolean().optional(),
+  extraDeck: z.boolean().optional(),
+  expression: z.string().max(20000).optional(),
+});
+const operation = z.object({
+  uid: z.string().min(1),
+  action,
+  amount: positive.max(100000),
+  source: sourceZone,
+  players: playerScope,
+  filter,
+  selection: z.enum(["target", "select", "all", "self", "previous"]),
+  next: z.enum(["always", "if-success", "if-failed"]),
+  timing: z.enum(["separate", "together"]).optional(),
+  optional: z.boolean(),
+  attack: integer,
+  defense: integer,
+  ...operationOptions,
+});
+const luaBody = z.string().max(100000);
+const advanced = z.object({
+  type: z.string().max(2000),
+  code: z.string().max(2000),
+  category: z.string().max(2000).optional(),
+  property: z.string().max(2000).optional(),
+  value: z.string().max(20000).optional(),
+  reset: z.string().max(2000).optional(),
+  range: z.string().max(2000).optional(),
+  targetRange: z.tuple([nonnegative, nonnegative]).optional(),
+  requiredCore: z.enum(["ygopro", "koishipro"]).optional(),
+  condition: luaBody.optional(),
+  cost: luaBody.optional(),
+  target: luaBody.optional(),
+  operation: luaBody.optional(),
+  valueFunction: luaBody.optional(),
+  callbackArgs: z
+    .object({
+      condition: z.string().max(500).optional(),
+      cost: z.string().max(500).optional(),
+      target: z.string().max(500).optional(),
+      operation: z.string().max(500).optional(),
+      valueFunction: z.string().max(500).optional(),
+    })
+    .optional(),
 });
 const effect = z.object({
   uid: z.string().min(1),
@@ -35,6 +143,27 @@ const effect = z.object({
     "summon",
     "self-summon",
     "boost",
+    "damage",
+    "heal",
+    "mill-top",
+    "to-deck",
+    "send-grave",
+    "discard-hand",
+    "change-position",
+    "control",
+    "negate-activation",
+    "negate-effect",
+    "disable",
+    "equip",
+    "add-counter",
+    "remove-counter",
+    "attach-material",
+    "detach-material",
+    "set-spelltrap",
+    "declare-race",
+    "declare-attribute",
+    "sequence",
+    "custom-effect",
   ]),
   trigger: z.enum([
     "activate",
@@ -45,23 +174,27 @@ const effect = z.object({
     "flip",
     "sent-to-grave",
     "quick",
+    "chain",
+    "destroyed",
+    "banished",
+    "to-hand",
+    "to-deck",
+    "battle-destroying",
+    "battle-destroyed",
+    "damage",
+    "attack-announce",
+    "standby",
+    "end-phase",
+    "any-summon",
+    "any-special-summon",
   ]),
   description: z.string(),
   sourceText: z.string(),
   count: z.enum(["none", "soft", "name-use", "name-activate", "shared-use"]),
   countGroup: z.string().optional(),
   amount: number,
-  source: z.enum([
-    "deck",
-    "hand",
-    "grave",
-    "field",
-    "monster",
-    "spelltrap",
-    "banished",
-    "hand-grave",
-  ]),
-  players: z.enum(["self", "opponent", "both"]),
+  source: sourceZone,
+  players: playerScope,
   filter,
   cost: z.enum([
     "none",
@@ -70,6 +203,11 @@ const effect = z.object({
     "banish-self",
     "send-self",
     "lp",
+    "release-self",
+    "release-monster",
+    "banish-grave",
+    "detach",
+    "remove-counter",
   ]),
   costAmount: number,
   optional: z.boolean(),
@@ -78,6 +216,9 @@ const effect = z.object({
   condition: z.enum(["none", "no-monsters", "opponent-only"]),
   scope: z.enum(["monster", "pendulum"]).optional(),
   range: z.enum(["field", "hand", "grave", "banished"]).optional(),
+  ...operationOptions,
+  operations: z.array(operation).max(16).optional(),
+  advanced: advanced.optional(),
 });
 const procedure = z.object({
   mode: z.enum(["none", "synchro", "xyz", "link", "fusion"]),
@@ -195,6 +336,12 @@ export function parseNativeProject(value: unknown): CardProject {
       if (effects.has(block.uid))
         throw new Error(`${current.name} 含有重复的效果内部 ID。`);
       effects.add(block.uid);
+      const operations = new Set<string>();
+      for (const step of block.operations || []) {
+        if (operations.has(step.uid))
+          throw new Error(`${current.name} 含有重复的处理内部 ID。`);
+        operations.add(step.uid);
+      }
     }
   }
   return parsed.data;

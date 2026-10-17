@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import JSZip from "jszip";
-import { createCard, createProject } from "../src/domain/model";
+import { createCard, createEffect, createProject } from "../src/domain/model";
 import { compileCard } from "../src/domain/compiler";
 import { cardTypeBits, packedSetcode } from "../src/io/card-data";
 import { createCdb, exportProject, getSql } from "../src/io/export";
@@ -120,6 +120,39 @@ describe("YGOPRO package export", () => {
     await expect(
       exportProject(invalid, { allowDraft: true }),
     ).rejects.toThrow();
+  });
+
+  it("blocks Koishi-only effect blocks and custom SetCode numbers even in draft exports", async () => {
+    const project = projectFixture();
+    const card = project.cards[0];
+    card.kind = "effect";
+    card.hasEffect = true;
+    const block = createEffect("custom-effect", card);
+    block.advanced = {
+      type: "EFFECT_TYPE_SINGLE",
+      code: "EFFECT_MAP_OF_HEAVEN",
+      value: "1",
+    };
+    card.effects = [block];
+    await expect(exportProject(project, { allowDraft: true })).rejects.toThrow(
+      "KoishiPRO",
+    );
+    card.scriptMode = "custom";
+    card.customLua =
+      "local s,id=GetID()\nfunction s.initial_effect(c)\nlocal e=Effect.CreateEffect(c)\ne:SetType(EFFECT_TYPE_SINGLE)\ne:SetCode(37564151)\ne:SetValue(128)\nc:RegisterEffect(e)\nend";
+    await expect(exportProject(project, { allowDraft: true })).rejects.toThrow(
+      "KoishiPRO",
+    );
+    project.target = "koishipro";
+    const zip = await JSZip.loadAsync(
+      await (await exportProject(project)).arrayBuffer(),
+    );
+    expect(
+      JSON.parse(await zip.file("export-report.json")!.async("string")).target,
+    ).toBe("koishipro");
+    expect(
+      await zip.file(`expansions/script/c${card.code}.lua`)!.async("string"),
+    ).toContain("SetCode(37564151)");
   });
 
   it("requires explicit draft choice for incomplete review but preserves the report", async () => {

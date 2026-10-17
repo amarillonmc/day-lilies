@@ -69,9 +69,9 @@ export function raceName(race: number, language: Language): string {
   const lang = { en: 0, sc: 1, tc: 2, jp: 3 }[language];
   return names
     ? names[lang] + (language === "en" ? "" : "族")
-    : language === "en"
-      ? "Unknown Type"
-      : "未知种族";
+    : { en: "Unknown Type", sc: "未知种族", tc: "未知種族", jp: "不明な種族" }[
+        language
+      ];
 }
 export function cardTypeBits(card: Card): number {
   if (card.kind === "spell" || card.kind === "trap") {
@@ -119,7 +119,9 @@ export function cardDescription(card: Card): string {
       ? ["[Pendulum Effect]", "[Monster Effect]"]
       : card.language === "jp"
         ? ["【ペンデュラム効果】", "【モンスター効果】"]
-        : ["【灵摆效果】", "【怪兽效果】"];
+        : card.language === "tc"
+          ? ["【靈擺效果】", "【怪獸效果】"]
+          : ["【灵摆效果】", "【怪兽效果】"];
   return `${labels[0]}\n${card.pendulumText}\n----------------------------------------\n${labels[1]}\n${card.text}`;
 }
 export function packedSetcode(codes: number[]): string {

@@ -1,0 +1,2849 @@
+{
+  "source": "https://github.com/Smile-DK/ygopro-scripts/blob/59ffe3c3aeeb86a0f6d8bf027516131826fbb230/constant.lua",
+  "entries": [
+    {
+      "id": "LOCATION_DECK",
+      "category": "location",
+      "code": 1,
+      "line": 8
+    },
+    {
+      "id": "LOCATION_HAND",
+      "category": "location",
+      "code": 2,
+      "line": 9
+    },
+    {
+      "id": "LOCATION_MZONE",
+      "category": "location",
+      "code": 4,
+      "line": 10
+    },
+    {
+      "id": "LOCATION_SZONE",
+      "category": "location",
+      "code": 8,
+      "line": 11
+    },
+    {
+      "id": "LOCATION_GRAVE",
+      "category": "location",
+      "code": 16,
+      "line": 12
+    },
+    {
+      "id": "LOCATION_REMOVED",
+      "category": "location",
+      "code": 32,
+      "line": 13
+    },
+    {
+      "id": "LOCATION_EXTRA",
+      "category": "location",
+      "code": 64,
+      "line": 14
+    },
+    {
+      "id": "LOCATION_OVERLAY",
+      "category": "location",
+      "code": 128,
+      "line": 15
+    },
+    {
+      "id": "LOCATION_ONFIELD",
+      "category": "location",
+      "code": 12,
+      "line": 16
+    },
+    {
+      "id": "LOCATION_DECKBOT",
+      "category": "location",
+      "code": 65537,
+      "line": 18
+    },
+    {
+      "id": "LOCATION_DECKSHF",
+      "category": "location",
+      "code": 131073,
+      "line": 19
+    },
+    {
+      "id": "LOCATION_FZONE",
+      "category": "location",
+      "code": 256,
+      "line": 25
+    },
+    {
+      "id": "LOCATION_PZONE",
+      "category": "location",
+      "code": 512,
+      "line": 26
+    },
+    {
+      "id": "LOCATION_REASON_TOFIELD",
+      "category": "location",
+      "code": 1,
+      "line": 136
+    },
+    {
+      "id": "LOCATION_REASON_CONTROL",
+      "category": "location",
+      "code": 2,
+      "line": 137
+    },
+    {
+      "id": "RESET_SELF_TURN",
+      "category": "reset",
+      "code": 268435456,
+      "line": 268
+    },
+    {
+      "id": "RESET_OPPO_TURN",
+      "category": "reset",
+      "code": 536870912,
+      "line": 269
+    },
+    {
+      "id": "RESET_PHASE",
+      "category": "reset",
+      "code": 1073741824,
+      "line": 270
+    },
+    {
+      "id": "RESET_CHAIN",
+      "category": "reset",
+      "code": 2147483648,
+      "line": 271
+    },
+    {
+      "id": "RESET_EVENT",
+      "category": "reset",
+      "code": 4096,
+      "line": 272
+    },
+    {
+      "id": "RESET_CARD",
+      "category": "reset",
+      "code": 8192,
+      "line": 273
+    },
+    {
+      "id": "RESET_CODE",
+      "category": "reset",
+      "code": 16384,
+      "line": 274
+    },
+    {
+      "id": "RESET_COPY",
+      "category": "reset",
+      "code": 32768,
+      "line": 275
+    },
+    {
+      "id": "RESET_DISABLE",
+      "category": "reset",
+      "code": 65536,
+      "line": 276
+    },
+    {
+      "id": "RESET_TURN_SET",
+      "category": "reset",
+      "code": 131072,
+      "line": 277
+    },
+    {
+      "id": "RESET_TOGRAVE",
+      "category": "reset",
+      "code": 262144,
+      "line": 278
+    },
+    {
+      "id": "RESET_REMOVE",
+      "category": "reset",
+      "code": 524288,
+      "line": 279
+    },
+    {
+      "id": "RESET_TEMP_REMOVE",
+      "category": "reset",
+      "code": 1048576,
+      "line": 280
+    },
+    {
+      "id": "RESET_TOHAND",
+      "category": "reset",
+      "code": 2097152,
+      "line": 281
+    },
+    {
+      "id": "RESET_TODECK",
+      "category": "reset",
+      "code": 4194304,
+      "line": 282
+    },
+    {
+      "id": "RESET_LEAVE",
+      "category": "reset",
+      "code": 8388608,
+      "line": 283
+    },
+    {
+      "id": "RESET_TOFIELD",
+      "category": "reset",
+      "code": 16777216,
+      "line": 284
+    },
+    {
+      "id": "RESET_CONTROL",
+      "category": "reset",
+      "code": 33554432,
+      "line": 285
+    },
+    {
+      "id": "RESET_OVERLAY",
+      "category": "reset",
+      "code": 67108864,
+      "line": 286
+    },
+    {
+      "id": "RESET_MSCHANGE",
+      "category": "reset",
+      "code": 134217728,
+      "line": 287
+    },
+    {
+      "id": "RESETS_STANDARD",
+      "category": "reset",
+      "code": 33423360,
+      "line": 289
+    },
+    {
+      "id": "RESETS_REDIRECT",
+      "category": "reset",
+      "code": 209584128,
+      "line": 290
+    },
+    {
+      "id": "RESETS_WITHOUT_TEMP_REMOVE",
+      "category": "reset",
+      "code": 91095040,
+      "line": 291
+    },
+    {
+      "id": "EFFECT_TYPE_SINGLE",
+      "category": "type",
+      "code": 1,
+      "line": 293
+    },
+    {
+      "id": "EFFECT_TYPE_FIELD",
+      "category": "type",
+      "code": 2,
+      "line": 294
+    },
+    {
+      "id": "EFFECT_TYPE_EQUIP",
+      "category": "type",
+      "code": 4,
+      "line": 295
+    },
+    {
+      "id": "EFFECT_TYPE_ACTIONS",
+      "category": "type",
+      "code": 8,
+      "line": 296
+    },
+    {
+      "id": "EFFECT_TYPE_ACTIVATE",
+      "category": "type",
+      "code": 16,
+      "line": 297
+    },
+    {
+      "id": "EFFECT_TYPE_FLIP",
+      "category": "type",
+      "code": 32,
+      "line": 298
+    },
+    {
+      "id": "EFFECT_TYPE_IGNITION",
+      "category": "type",
+      "code": 64,
+      "line": 299
+    },
+    {
+      "id": "EFFECT_TYPE_TRIGGER_O",
+      "category": "type",
+      "code": 128,
+      "line": 300
+    },
+    {
+      "id": "EFFECT_TYPE_QUICK_O",
+      "category": "type",
+      "code": 256,
+      "line": 301
+    },
+    {
+      "id": "EFFECT_TYPE_TRIGGER_F",
+      "category": "type",
+      "code": 512,
+      "line": 302
+    },
+    {
+      "id": "EFFECT_TYPE_QUICK_F",
+      "category": "type",
+      "code": 1024,
+      "line": 303
+    },
+    {
+      "id": "EFFECT_TYPE_CONTINUOUS",
+      "category": "type",
+      "code": 2048,
+      "line": 304
+    },
+    {
+      "id": "EFFECT_TYPE_XMATERIAL",
+      "category": "type",
+      "code": 4096,
+      "line": 305
+    },
+    {
+      "id": "EFFECT_TYPE_GRANT",
+      "category": "type",
+      "code": 8192,
+      "line": 306
+    },
+    {
+      "id": "EFFECT_TYPE_TARGET",
+      "category": "type",
+      "code": 16384,
+      "line": 307
+    },
+    {
+      "id": "EFFECT_FLAG_INITIAL",
+      "category": "property",
+      "code": 1,
+      "line": 309
+    },
+    {
+      "id": "EFFECT_FLAG_FUNC_VALUE",
+      "category": "property",
+      "code": 2,
+      "line": 310
+    },
+    {
+      "id": "EFFECT_FLAG_COUNT_LIMIT",
+      "category": "property",
+      "code": 4,
+      "line": 311
+    },
+    {
+      "id": "EFFECT_FLAG_FIELD_ONLY",
+      "category": "property",
+      "code": 8,
+      "line": 312
+    },
+    {
+      "id": "EFFECT_FLAG_CARD_TARGET",
+      "category": "property",
+      "code": 16,
+      "line": 313
+    },
+    {
+      "id": "EFFECT_FLAG_IGNORE_RANGE",
+      "category": "property",
+      "code": 32,
+      "line": 314
+    },
+    {
+      "id": "EFFECT_FLAG_ABSOLUTE_TARGET",
+      "category": "property",
+      "code": 64,
+      "line": 315
+    },
+    {
+      "id": "EFFECT_FLAG_IGNORE_IMMUNE",
+      "category": "property",
+      "code": 128,
+      "line": 316
+    },
+    {
+      "id": "EFFECT_FLAG_SET_AVAILABLE",
+      "category": "property",
+      "code": 256,
+      "line": 317
+    },
+    {
+      "id": "EFFECT_FLAG_CAN_FORBIDDEN",
+      "category": "property",
+      "code": 512,
+      "line": 318
+    },
+    {
+      "id": "EFFECT_FLAG_CANNOT_DISABLE",
+      "category": "property",
+      "code": 1024,
+      "line": 319
+    },
+    {
+      "id": "EFFECT_FLAG_PLAYER_TARGET",
+      "category": "property",
+      "code": 2048,
+      "line": 320
+    },
+    {
+      "id": "EFFECT_FLAG_BOTH_SIDE",
+      "category": "property",
+      "code": 4096,
+      "line": 321
+    },
+    {
+      "id": "EFFECT_FLAG_COPY",
+      "category": "property",
+      "code": 8192,
+      "line": 322
+    },
+    {
+      "id": "EFFECT_FLAG_DAMAGE_STEP",
+      "category": "property",
+      "code": 16384,
+      "line": 323
+    },
+    {
+      "id": "EFFECT_FLAG_DAMAGE_CAL",
+      "category": "property",
+      "code": 32768,
+      "line": 324
+    },
+    {
+      "id": "EFFECT_FLAG_DELAY",
+      "category": "property",
+      "code": 65536,
+      "line": 325
+    },
+    {
+      "id": "EFFECT_FLAG_SINGLE_RANGE",
+      "category": "property",
+      "code": 131072,
+      "line": 326
+    },
+    {
+      "id": "EFFECT_FLAG_UNCOPYABLE",
+      "category": "property",
+      "code": 262144,
+      "line": 327
+    },
+    {
+      "id": "EFFECT_FLAG_OATH",
+      "category": "property",
+      "code": 524288,
+      "line": 328
+    },
+    {
+      "id": "EFFECT_FLAG_SPSUM_PARAM",
+      "category": "property",
+      "code": 1048576,
+      "line": 329
+    },
+    {
+      "id": "EFFECT_FLAG_REPEAT",
+      "category": "property",
+      "code": 2097152,
+      "line": 330
+    },
+    {
+      "id": "EFFECT_FLAG_NO_TURN_RESET",
+      "category": "property",
+      "code": 4194304,
+      "line": 331
+    },
+    {
+      "id": "EFFECT_FLAG_EVENT_PLAYER",
+      "category": "property",
+      "code": 8388608,
+      "line": 332
+    },
+    {
+      "id": "EFFECT_FLAG_OWNER_RELATE",
+      "category": "property",
+      "code": 16777216,
+      "line": 333
+    },
+    {
+      "id": "EFFECT_FLAG_CANNOT_INACTIVATE",
+      "category": "property",
+      "code": 33554432,
+      "line": 334
+    },
+    {
+      "id": "EFFECT_FLAG_CLIENT_HINT",
+      "category": "property",
+      "code": 67108864,
+      "line": 335
+    },
+    {
+      "id": "EFFECT_FLAG_CONTINUOUS_TARGET",
+      "category": "property",
+      "code": 134217728,
+      "line": 336
+    },
+    {
+      "id": "EFFECT_FLAG_LIMIT_ZONE",
+      "category": "property",
+      "code": 268435456,
+      "line": 337
+    },
+    {
+      "id": "EFFECT_FLAG_ACTIVATE_CONDITION",
+      "category": "property",
+      "code": 536870912,
+      "line": 338
+    },
+    {
+      "id": "EFFECT_FLAG_CVAL_CHECK",
+      "category": "property",
+      "code": 1073741824,
+      "line": 339
+    },
+    {
+      "id": "EFFECT_FLAG_IMMEDIATELY_APPLY",
+      "category": "property",
+      "code": 2147483648,
+      "line": 340
+    },
+    {
+      "id": "EFFECT_FLAG_COIN",
+      "category": "property",
+      "code": 4294967296,
+      "line": 341
+    },
+    {
+      "id": "EFFECT_FLAG_DICE",
+      "category": "property",
+      "code": 8589934592,
+      "line": 342
+    },
+    {
+      "id": "EFFECT_FLAG_FUSION_SUMMON",
+      "category": "property",
+      "code": 17179869184,
+      "line": 343
+    },
+    {
+      "id": "EFFECT_FLAG2_REPEAT_UPDATE",
+      "category": "property",
+      "code": 1,
+      "line": 345
+    },
+    {
+      "id": "EFFECT_FLAG2_COF",
+      "category": "property",
+      "code": 2,
+      "line": 346
+    },
+    {
+      "id": "EFFECT_FLAG2_WICKED",
+      "category": "property",
+      "code": 4,
+      "line": 347
+    },
+    {
+      "id": "EFFECT_FLAG2_OPTION",
+      "category": "property",
+      "code": 8,
+      "line": 348
+    },
+    {
+      "id": "EFFECT_IMMUNE_EFFECT",
+      "category": "effect",
+      "code": 1,
+      "line": 351
+    },
+    {
+      "id": "EFFECT_DISABLE",
+      "category": "effect",
+      "code": 2,
+      "line": 352
+    },
+    {
+      "id": "EFFECT_CANNOT_DISABLE",
+      "category": "effect",
+      "code": 3,
+      "line": 353
+    },
+    {
+      "id": "EFFECT_SET_CONTROL",
+      "category": "effect",
+      "code": 4,
+      "line": 354
+    },
+    {
+      "id": "EFFECT_CANNOT_CHANGE_CONTROL",
+      "category": "effect",
+      "code": 5,
+      "line": 355
+    },
+    {
+      "id": "EFFECT_CANNOT_ACTIVATE",
+      "category": "effect",
+      "code": 6,
+      "line": 356
+    },
+    {
+      "id": "EFFECT_CANNOT_TRIGGER",
+      "category": "effect",
+      "code": 7,
+      "line": 357
+    },
+    {
+      "id": "EFFECT_DISABLE_EFFECT",
+      "category": "effect",
+      "code": 8,
+      "line": 358
+    },
+    {
+      "id": "EFFECT_DISABLE_CHAIN",
+      "category": "effect",
+      "code": 9,
+      "line": 359
+    },
+    {
+      "id": "EFFECT_DISABLE_TRAPMONSTER",
+      "category": "effect",
+      "code": 10,
+      "line": 360
+    },
+    {
+      "id": "EFFECT_CANNOT_INACTIVATE",
+      "category": "effect",
+      "code": 12,
+      "line": 361
+    },
+    {
+      "id": "EFFECT_CANNOT_DISEFFECT",
+      "category": "effect",
+      "code": 13,
+      "line": 362
+    },
+    {
+      "id": "EFFECT_CANNOT_CHANGE_POSITION",
+      "category": "effect",
+      "code": 14,
+      "line": 363
+    },
+    {
+      "id": "EFFECT_TRAP_ACT_IN_HAND",
+      "category": "effect",
+      "code": 15,
+      "line": 364
+    },
+    {
+      "id": "EFFECT_TRAP_ACT_IN_SET_TURN",
+      "category": "effect",
+      "code": 16,
+      "line": 365
+    },
+    {
+      "id": "EFFECT_REMAIN_FIELD",
+      "category": "effect",
+      "code": 17,
+      "line": 366
+    },
+    {
+      "id": "EFFECT_MONSTER_SSET",
+      "category": "effect",
+      "code": 18,
+      "line": 367
+    },
+    {
+      "id": "EFFECT_CANNOT_SUMMON",
+      "category": "effect",
+      "code": 20,
+      "line": 368
+    },
+    {
+      "id": "EFFECT_CANNOT_FLIP_SUMMON",
+      "category": "effect",
+      "code": 21,
+      "line": 369
+    },
+    {
+      "id": "EFFECT_CANNOT_SPECIAL_SUMMON",
+      "category": "effect",
+      "code": 22,
+      "line": 370
+    },
+    {
+      "id": "EFFECT_CANNOT_MSET",
+      "category": "effect",
+      "code": 23,
+      "line": 371
+    },
+    {
+      "id": "EFFECT_CANNOT_SSET",
+      "category": "effect",
+      "code": 24,
+      "line": 372
+    },
+    {
+      "id": "EFFECT_CANNOT_DRAW",
+      "category": "effect",
+      "code": 25,
+      "line": 373
+    },
+    {
+      "id": "EFFECT_CANNOT_DISABLE_SUMMON",
+      "category": "effect",
+      "code": 26,
+      "line": 374
+    },
+    {
+      "id": "EFFECT_CANNOT_DISABLE_SPSUMMON",
+      "category": "effect",
+      "code": 27,
+      "line": 375
+    },
+    {
+      "id": "EFFECT_SET_SUMMON_COUNT_LIMIT",
+      "category": "effect",
+      "code": 28,
+      "line": 376
+    },
+    {
+      "id": "EFFECT_EXTRA_SUMMON_COUNT",
+      "category": "effect",
+      "code": 29,
+      "line": 377
+    },
+    {
+      "id": "EFFECT_SPSUMMON_CONDITION",
+      "category": "effect",
+      "code": 30,
+      "line": 378
+    },
+    {
+      "id": "EFFECT_REVIVE_LIMIT",
+      "category": "effect",
+      "code": 31,
+      "line": 379
+    },
+    {
+      "id": "EFFECT_SUMMON_PROC",
+      "category": "effect",
+      "code": 32,
+      "line": 380
+    },
+    {
+      "id": "EFFECT_LIMIT_SUMMON_PROC",
+      "category": "effect",
+      "code": 33,
+      "line": 381
+    },
+    {
+      "id": "EFFECT_SPSUMMON_PROC",
+      "category": "effect",
+      "code": 34,
+      "line": 382
+    },
+    {
+      "id": "EFFECT_EXTRA_SET_COUNT",
+      "category": "effect",
+      "code": 35,
+      "line": 383
+    },
+    {
+      "id": "EFFECT_SET_PROC",
+      "category": "effect",
+      "code": 36,
+      "line": 384
+    },
+    {
+      "id": "EFFECT_LIMIT_SET_PROC",
+      "category": "effect",
+      "code": 37,
+      "line": 385
+    },
+    {
+      "id": "EFFECT_DIVINE_LIGHT",
+      "category": "effect",
+      "code": 38,
+      "line": 386
+    },
+    {
+      "id": "EFFECT_CANNOT_DISABLE_FLIP_SUMMON",
+      "category": "effect",
+      "code": 39,
+      "line": 387
+    },
+    {
+      "id": "EFFECT_INDESTRUCTABLE",
+      "category": "effect",
+      "code": 40,
+      "line": 388
+    },
+    {
+      "id": "EFFECT_INDESTRUCTABLE_EFFECT",
+      "category": "effect",
+      "code": 41,
+      "line": 389
+    },
+    {
+      "id": "EFFECT_INDESTRUCTABLE_BATTLE",
+      "category": "effect",
+      "code": 42,
+      "line": 390
+    },
+    {
+      "id": "EFFECT_UNRELEASABLE_SUM",
+      "category": "effect",
+      "code": 43,
+      "line": 391
+    },
+    {
+      "id": "EFFECT_UNRELEASABLE_NONSUM",
+      "category": "effect",
+      "code": 44,
+      "line": 392
+    },
+    {
+      "id": "EFFECT_DESTROY_SUBSTITUTE",
+      "category": "effect",
+      "code": 45,
+      "line": 393
+    },
+    {
+      "id": "EFFECT_CANNOT_RELEASE",
+      "category": "effect",
+      "code": 46,
+      "line": 394
+    },
+    {
+      "id": "EFFECT_INDESTRUCTABLE_COUNT",
+      "category": "effect",
+      "code": 47,
+      "line": 395
+    },
+    {
+      "id": "EFFECT_UNRELEASABLE_EFFECT",
+      "category": "effect",
+      "code": 48,
+      "line": 396
+    },
+    {
+      "id": "EFFECT_DESTROY_REPLACE",
+      "category": "effect",
+      "code": 50,
+      "line": 397
+    },
+    {
+      "id": "EFFECT_RELEASE_REPLACE",
+      "category": "effect",
+      "code": 51,
+      "line": 398
+    },
+    {
+      "id": "EFFECT_SEND_REPLACE",
+      "category": "effect",
+      "code": 52,
+      "line": 399
+    },
+    {
+      "id": "EFFECT_CANNOT_DISCARD_HAND",
+      "category": "effect",
+      "code": 55,
+      "line": 400
+    },
+    {
+      "id": "EFFECT_CANNOT_DISCARD_DECK",
+      "category": "effect",
+      "code": 56,
+      "line": 401
+    },
+    {
+      "id": "EFFECT_CANNOT_USE_AS_COST",
+      "category": "effect",
+      "code": 57,
+      "line": 402
+    },
+    {
+      "id": "EFFECT_CANNOT_PLACE_COUNTER",
+      "category": "effect",
+      "code": 58,
+      "line": 403
+    },
+    {
+      "id": "EFFECT_CANNOT_TO_GRAVE_AS_COST",
+      "category": "effect",
+      "code": 59,
+      "line": 404
+    },
+    {
+      "id": "EFFECT_LEAVE_FIELD_REDIRECT",
+      "category": "effect",
+      "code": 60,
+      "line": 405
+    },
+    {
+      "id": "EFFECT_TO_HAND_REDIRECT",
+      "category": "effect",
+      "code": 61,
+      "line": 406
+    },
+    {
+      "id": "EFFECT_TO_DECK_REDIRECT",
+      "category": "effect",
+      "code": 62,
+      "line": 407
+    },
+    {
+      "id": "EFFECT_TO_GRAVE_REDIRECT",
+      "category": "effect",
+      "code": 63,
+      "line": 408
+    },
+    {
+      "id": "EFFECT_REMOVE_REDIRECT",
+      "category": "effect",
+      "code": 64,
+      "line": 409
+    },
+    {
+      "id": "EFFECT_CANNOT_TO_HAND",
+      "category": "effect",
+      "code": 65,
+      "line": 410
+    },
+    {
+      "id": "EFFECT_CANNOT_TO_DECK",
+      "category": "effect",
+      "code": 66,
+      "line": 411
+    },
+    {
+      "id": "EFFECT_CANNOT_REMOVE",
+      "category": "effect",
+      "code": 67,
+      "line": 412
+    },
+    {
+      "id": "EFFECT_CANNOT_TO_GRAVE",
+      "category": "effect",
+      "code": 68,
+      "line": 413
+    },
+    {
+      "id": "EFFECT_CANNOT_TURN_SET",
+      "category": "effect",
+      "code": 69,
+      "line": 414
+    },
+    {
+      "id": "EFFECT_CANNOT_BE_BATTLE_TARGET",
+      "category": "effect",
+      "code": 70,
+      "line": 415
+    },
+    {
+      "id": "EFFECT_CANNOT_BE_EFFECT_TARGET",
+      "category": "effect",
+      "code": 71,
+      "line": 416
+    },
+    {
+      "id": "EFFECT_IGNORE_BATTLE_TARGET",
+      "category": "effect",
+      "code": 72,
+      "line": 417
+    },
+    {
+      "id": "EFFECT_CANNOT_DIRECT_ATTACK",
+      "category": "effect",
+      "code": 73,
+      "line": 418
+    },
+    {
+      "id": "EFFECT_DIRECT_ATTACK",
+      "category": "effect",
+      "code": 74,
+      "line": 419
+    },
+    {
+      "id": "EFFECT_DUAL_STATUS",
+      "category": "effect",
+      "code": 75,
+      "line": 420
+    },
+    {
+      "id": "EFFECT_EQUIP_LIMIT",
+      "category": "effect",
+      "code": 76,
+      "line": 421
+    },
+    {
+      "id": "EFFECT_DUAL_SUMMONABLE",
+      "category": "effect",
+      "code": 77,
+      "line": 422
+    },
+    {
+      "id": "EFFECT_UNION_LIMIT",
+      "category": "effect",
+      "code": 78,
+      "line": 423
+    },
+    {
+      "id": "EFFECT_REVERSE_DAMAGE",
+      "category": "effect",
+      "code": 80,
+      "line": 424
+    },
+    {
+      "id": "EFFECT_REVERSE_RECOVER",
+      "category": "effect",
+      "code": 81,
+      "line": 425
+    },
+    {
+      "id": "EFFECT_CHANGE_DAMAGE",
+      "category": "effect",
+      "code": 82,
+      "line": 426
+    },
+    {
+      "id": "EFFECT_REFLECT_DAMAGE",
+      "category": "effect",
+      "code": 83,
+      "line": 427
+    },
+    {
+      "id": "EFFECT_CANNOT_ATTACK",
+      "category": "effect",
+      "code": 85,
+      "line": 428
+    },
+    {
+      "id": "EFFECT_CANNOT_ATTACK_ANNOUNCE",
+      "category": "effect",
+      "code": 86,
+      "line": 429
+    },
+    {
+      "id": "EFFECT_CANNOT_CHANGE_POS_E",
+      "category": "effect",
+      "code": 87,
+      "line": 430
+    },
+    {
+      "id": "EFFECT_ACTIVATE_COST",
+      "category": "effect",
+      "code": 90,
+      "line": 431
+    },
+    {
+      "id": "EFFECT_SUMMON_COST",
+      "category": "effect",
+      "code": 91,
+      "line": 432
+    },
+    {
+      "id": "EFFECT_SPSUMMON_COST",
+      "category": "effect",
+      "code": 92,
+      "line": 433
+    },
+    {
+      "id": "EFFECT_FLIPSUMMON_COST",
+      "category": "effect",
+      "code": 93,
+      "line": 434
+    },
+    {
+      "id": "EFFECT_MSET_COST",
+      "category": "effect",
+      "code": 94,
+      "line": 435
+    },
+    {
+      "id": "EFFECT_SSET_COST",
+      "category": "effect",
+      "code": 95,
+      "line": 436
+    },
+    {
+      "id": "EFFECT_ATTACK_COST",
+      "category": "effect",
+      "code": 96,
+      "line": 437
+    },
+    {
+      "id": "EFFECT_UPDATE_ATTACK",
+      "category": "effect",
+      "code": 100,
+      "line": 439
+    },
+    {
+      "id": "EFFECT_SET_ATTACK",
+      "category": "effect",
+      "code": 101,
+      "line": 440
+    },
+    {
+      "id": "EFFECT_SET_ATTACK_FINAL",
+      "category": "effect",
+      "code": 102,
+      "line": 441
+    },
+    {
+      "id": "EFFECT_SET_BASE_ATTACK",
+      "category": "effect",
+      "code": 103,
+      "line": 442
+    },
+    {
+      "id": "EFFECT_UPDATE_DEFENSE",
+      "category": "effect",
+      "code": 104,
+      "line": 443
+    },
+    {
+      "id": "EFFECT_SET_DEFENSE",
+      "category": "effect",
+      "code": 105,
+      "line": 444
+    },
+    {
+      "id": "EFFECT_SET_DEFENSE_FINAL",
+      "category": "effect",
+      "code": 106,
+      "line": 445
+    },
+    {
+      "id": "EFFECT_SET_BASE_DEFENSE",
+      "category": "effect",
+      "code": 107,
+      "line": 446
+    },
+    {
+      "id": "EFFECT_REVERSE_UPDATE",
+      "category": "effect",
+      "code": 108,
+      "line": 447
+    },
+    {
+      "id": "EFFECT_SWAP_AD",
+      "category": "effect",
+      "code": 109,
+      "line": 448
+    },
+    {
+      "id": "EFFECT_SWAP_BASE_AD",
+      "category": "effect",
+      "code": 110,
+      "line": 449
+    },
+    {
+      "id": "EFFECT_SET_BASE_ATTACK_FINAL",
+      "category": "effect",
+      "code": 111,
+      "line": 450
+    },
+    {
+      "id": "EFFECT_SET_BASE_DEFENSE_FINAL",
+      "category": "effect",
+      "code": 112,
+      "line": 451
+    },
+    {
+      "id": "EFFECT_ADD_CODE",
+      "category": "effect",
+      "code": 113,
+      "line": 452
+    },
+    {
+      "id": "EFFECT_CHANGE_CODE",
+      "category": "effect",
+      "code": 114,
+      "line": 453
+    },
+    {
+      "id": "EFFECT_ADD_TYPE",
+      "category": "effect",
+      "code": 115,
+      "line": 454
+    },
+    {
+      "id": "EFFECT_REMOVE_TYPE",
+      "category": "effect",
+      "code": 116,
+      "line": 455
+    },
+    {
+      "id": "EFFECT_CHANGE_TYPE",
+      "category": "effect",
+      "code": 117,
+      "line": 456
+    },
+    {
+      "id": "EFFECT_ADD_RACE",
+      "category": "effect",
+      "code": 120,
+      "line": 457
+    },
+    {
+      "id": "EFFECT_REMOVE_RACE",
+      "category": "effect",
+      "code": 121,
+      "line": 458
+    },
+    {
+      "id": "EFFECT_CHANGE_RACE",
+      "category": "effect",
+      "code": 122,
+      "line": 459
+    },
+    {
+      "id": "EFFECT_ADD_ATTRIBUTE",
+      "category": "effect",
+      "code": 125,
+      "line": 460
+    },
+    {
+      "id": "EFFECT_REMOVE_ATTRIBUTE",
+      "category": "effect",
+      "code": 126,
+      "line": 461
+    },
+    {
+      "id": "EFFECT_CHANGE_ATTRIBUTE",
+      "category": "effect",
+      "code": 127,
+      "line": 462
+    },
+    {
+      "id": "EFFECT_UPDATE_LEVEL",
+      "category": "effect",
+      "code": 130,
+      "line": 463
+    },
+    {
+      "id": "EFFECT_CHANGE_LEVEL",
+      "category": "effect",
+      "code": 131,
+      "line": 464
+    },
+    {
+      "id": "EFFECT_UPDATE_RANK",
+      "category": "effect",
+      "code": 132,
+      "line": 465
+    },
+    {
+      "id": "EFFECT_CHANGE_RANK",
+      "category": "effect",
+      "code": 133,
+      "line": 466
+    },
+    {
+      "id": "EFFECT_UPDATE_LSCALE",
+      "category": "effect",
+      "code": 134,
+      "line": 467
+    },
+    {
+      "id": "EFFECT_CHANGE_LSCALE",
+      "category": "effect",
+      "code": 135,
+      "line": 468
+    },
+    {
+      "id": "EFFECT_UPDATE_RSCALE",
+      "category": "effect",
+      "code": 136,
+      "line": 469
+    },
+    {
+      "id": "EFFECT_CHANGE_RSCALE",
+      "category": "effect",
+      "code": 137,
+      "line": 470
+    },
+    {
+      "id": "EFFECT_SET_POSITION",
+      "category": "effect",
+      "code": 140,
+      "line": 471
+    },
+    {
+      "id": "EFFECT_SELF_DESTROY",
+      "category": "effect",
+      "code": 141,
+      "line": 472
+    },
+    {
+      "id": "EFFECT_SELF_TOGRAVE",
+      "category": "effect",
+      "code": 142,
+      "line": 473
+    },
+    {
+      "id": "EFFECT_DOUBLE_TRIBUTE",
+      "category": "effect",
+      "code": 150,
+      "line": 474
+    },
+    {
+      "id": "EFFECT_DECREASE_TRIBUTE",
+      "category": "effect",
+      "code": 151,
+      "line": 475
+    },
+    {
+      "id": "EFFECT_DECREASE_TRIBUTE_SET",
+      "category": "effect",
+      "code": 152,
+      "line": 476
+    },
+    {
+      "id": "EFFECT_EXTRA_RELEASE",
+      "category": "effect",
+      "code": 153,
+      "line": 477
+    },
+    {
+      "id": "EFFECT_TRIBUTE_LIMIT",
+      "category": "effect",
+      "code": 154,
+      "line": 478
+    },
+    {
+      "id": "EFFECT_EXTRA_RELEASE_SUM",
+      "category": "effect",
+      "code": 155,
+      "line": 479
+    },
+    {
+      "id": "EFFECT_TRIPLE_TRIBUTE",
+      "category": "effect",
+      "code": 156,
+      "line": 480
+    },
+    {
+      "id": "EFFECT_ADD_EXTRA_TRIBUTE",
+      "category": "effect",
+      "code": 157,
+      "line": 481
+    },
+    {
+      "id": "EFFECT_EXTRA_RELEASE_NONSUM",
+      "category": "effect",
+      "code": 158,
+      "line": 482
+    },
+    {
+      "id": "EFFECT_PUBLIC",
+      "category": "effect",
+      "code": 160,
+      "line": 483
+    },
+    {
+      "id": "EFFECT_COUNTER_PERMIT",
+      "category": "effect",
+      "code": 65536,
+      "line": 484
+    },
+    {
+      "id": "EFFECT_COUNTER_LIMIT",
+      "category": "effect",
+      "code": 131072,
+      "line": 485
+    },
+    {
+      "id": "EFFECT_RCOUNTER_REPLACE",
+      "category": "effect",
+      "code": 196608,
+      "line": 486
+    },
+    {
+      "id": "EFFECT_LPCOST_CHANGE",
+      "category": "effect",
+      "code": 170,
+      "line": 487
+    },
+    {
+      "id": "EFFECT_LPCOST_REPLACE",
+      "category": "effect",
+      "code": 171,
+      "line": 488
+    },
+    {
+      "id": "EFFECT_SKIP_DP",
+      "category": "effect",
+      "code": 180,
+      "line": 489
+    },
+    {
+      "id": "EFFECT_SKIP_SP",
+      "category": "effect",
+      "code": 181,
+      "line": 490
+    },
+    {
+      "id": "EFFECT_SKIP_M1",
+      "category": "effect",
+      "code": 182,
+      "line": 491
+    },
+    {
+      "id": "EFFECT_SKIP_BP",
+      "category": "effect",
+      "code": 183,
+      "line": 492
+    },
+    {
+      "id": "EFFECT_SKIP_M2",
+      "category": "effect",
+      "code": 184,
+      "line": 493
+    },
+    {
+      "id": "EFFECT_CANNOT_BP",
+      "category": "effect",
+      "code": 185,
+      "line": 494
+    },
+    {
+      "id": "EFFECT_CANNOT_M2",
+      "category": "effect",
+      "code": 186,
+      "line": 495
+    },
+    {
+      "id": "EFFECT_CANNOT_EP",
+      "category": "effect",
+      "code": 187,
+      "line": 496
+    },
+    {
+      "id": "EFFECT_SKIP_TURN",
+      "category": "effect",
+      "code": 188,
+      "line": 497
+    },
+    {
+      "id": "EFFECT_DEFENSE_ATTACK",
+      "category": "effect",
+      "code": 190,
+      "line": 498
+    },
+    {
+      "id": "EFFECT_MUST_ATTACK",
+      "category": "effect",
+      "code": 191,
+      "line": 499
+    },
+    {
+      "id": "EFFECT_FIRST_ATTACK",
+      "category": "effect",
+      "code": 192,
+      "line": 500
+    },
+    {
+      "id": "EFFECT_ATTACK_ALL",
+      "category": "effect",
+      "code": 193,
+      "line": 501
+    },
+    {
+      "id": "EFFECT_EXTRA_ATTACK",
+      "category": "effect",
+      "code": 194,
+      "line": 502
+    },
+    {
+      "id": "EFFECT_MUST_BE_ATTACKED",
+      "category": "effect",
+      "code": 195,
+      "line": 503
+    },
+    {
+      "id": "EFFECT_ONLY_BE_ATTACKED",
+      "category": "effect",
+      "code": 196,
+      "line": 504
+    },
+    {
+      "id": "EFFECT_ATTACK_DISABLED",
+      "category": "effect",
+      "code": 197,
+      "line": 505
+    },
+    {
+      "id": "EFFECT_NO_BATTLE_DAMAGE",
+      "category": "effect",
+      "code": 200,
+      "line": 506
+    },
+    {
+      "id": "EFFECT_AVOID_BATTLE_DAMAGE",
+      "category": "effect",
+      "code": 201,
+      "line": 507
+    },
+    {
+      "id": "EFFECT_REFLECT_BATTLE_DAMAGE",
+      "category": "effect",
+      "code": 202,
+      "line": 508
+    },
+    {
+      "id": "EFFECT_PIERCE",
+      "category": "effect",
+      "code": 203,
+      "line": 509
+    },
+    {
+      "id": "EFFECT_BATTLE_DESTROY_REDIRECT",
+      "category": "effect",
+      "code": 204,
+      "line": 510
+    },
+    {
+      "id": "EFFECT_BATTLE_DAMAGE_TO_EFFECT",
+      "category": "effect",
+      "code": 205,
+      "line": 511
+    },
+    {
+      "id": "EFFECT_BOTH_BATTLE_DAMAGE",
+      "category": "effect",
+      "code": 206,
+      "line": 512
+    },
+    {
+      "id": "EFFECT_ALSO_BATTLE_DAMAGE",
+      "category": "effect",
+      "code": 207,
+      "line": 513
+    },
+    {
+      "id": "EFFECT_CHANGE_BATTLE_DAMAGE",
+      "category": "effect",
+      "code": 208,
+      "line": 514
+    },
+    {
+      "id": "EFFECT_TOSS_COIN_REPLACE",
+      "category": "effect",
+      "code": 220,
+      "line": 515
+    },
+    {
+      "id": "EFFECT_TOSS_DICE_REPLACE",
+      "category": "effect",
+      "code": 221,
+      "line": 516
+    },
+    {
+      "id": "EFFECT_FUSION_MATERIAL",
+      "category": "effect",
+      "code": 230,
+      "line": 517
+    },
+    {
+      "id": "EFFECT_CHAIN_MATERIAL",
+      "category": "effect",
+      "code": 231,
+      "line": 518
+    },
+    {
+      "id": "EFFECT_EXTRA_SYNCHRO_MATERIAL",
+      "category": "effect",
+      "code": 232,
+      "line": 519
+    },
+    {
+      "id": "EFFECT_XYZ_MATERIAL",
+      "category": "effect",
+      "code": 233,
+      "line": 520
+    },
+    {
+      "id": "EFFECT_FUSION_SUBSTITUTE",
+      "category": "effect",
+      "code": 234,
+      "line": 521
+    },
+    {
+      "id": "EFFECT_CANNOT_BE_FUSION_MATERIAL",
+      "category": "effect",
+      "code": 235,
+      "line": 522
+    },
+    {
+      "id": "EFFECT_CANNOT_BE_SYNCHRO_MATERIAL",
+      "category": "effect",
+      "code": 236,
+      "line": 523
+    },
+    {
+      "id": "EFFECT_SYNCHRO_MATERIAL_CUSTOM",
+      "category": "effect",
+      "code": 237,
+      "line": 524
+    },
+    {
+      "id": "EFFECT_CANNOT_BE_XYZ_MATERIAL",
+      "category": "effect",
+      "code": 238,
+      "line": 525
+    },
+    {
+      "id": "EFFECT_CANNOT_BE_LINK_MATERIAL",
+      "category": "effect",
+      "code": 239,
+      "line": 526
+    },
+    {
+      "id": "EFFECT_SYNCHRO_LEVEL",
+      "category": "effect",
+      "code": 240,
+      "line": 527
+    },
+    {
+      "id": "EFFECT_RITUAL_LEVEL",
+      "category": "effect",
+      "code": 241,
+      "line": 528
+    },
+    {
+      "id": "EFFECT_XYZ_LEVEL",
+      "category": "effect",
+      "code": 242,
+      "line": 529
+    },
+    {
+      "id": "EFFECT_EXTRA_RITUAL_MATERIAL",
+      "category": "effect",
+      "code": 243,
+      "line": 530
+    },
+    {
+      "id": "EFFECT_NONTUNER",
+      "category": "effect",
+      "code": 244,
+      "line": 531
+    },
+    {
+      "id": "EFFECT_OVERLAY_REMOVE_REPLACE",
+      "category": "effect",
+      "code": 245,
+      "line": 532
+    },
+    {
+      "id": "EFFECT_SCRAP_CHIMERA",
+      "category": "effect",
+      "code": 246,
+      "line": 533
+    },
+    {
+      "id": "EFFECT_TUNE_MAGICIAN_X",
+      "category": "effect",
+      "code": 247,
+      "line": 534
+    },
+    {
+      "id": "EFFECT_TUNE_MAGICIAN_F",
+      "category": "effect",
+      "code": 248,
+      "line": 535
+    },
+    {
+      "id": "EFFECT_PRE_MONSTER",
+      "category": "effect",
+      "code": 250,
+      "line": 536
+    },
+    {
+      "id": "EFFECT_MATERIAL_CHECK",
+      "category": "effect",
+      "code": 251,
+      "line": 537
+    },
+    {
+      "id": "EFFECT_DISABLE_FIELD",
+      "category": "effect",
+      "code": 260,
+      "line": 538
+    },
+    {
+      "id": "EFFECT_USE_EXTRA_MZONE",
+      "category": "effect",
+      "code": 261,
+      "line": 539
+    },
+    {
+      "id": "EFFECT_USE_EXTRA_SZONE",
+      "category": "effect",
+      "code": 262,
+      "line": 540
+    },
+    {
+      "id": "EFFECT_MAX_MZONE",
+      "category": "effect",
+      "code": 263,
+      "line": 541
+    },
+    {
+      "id": "EFFECT_MAX_SZONE",
+      "category": "effect",
+      "code": 264,
+      "line": 542
+    },
+    {
+      "id": "EFFECT_MUST_USE_MZONE",
+      "category": "effect",
+      "code": 265,
+      "line": 543
+    },
+    {
+      "id": "EFFECT_HAND_LIMIT",
+      "category": "effect",
+      "code": 270,
+      "line": 544
+    },
+    {
+      "id": "EFFECT_DRAW_COUNT",
+      "category": "effect",
+      "code": 271,
+      "line": 545
+    },
+    {
+      "id": "EFFECT_SPIRIT_DONOT_RETURN",
+      "category": "effect",
+      "code": 280,
+      "line": 546
+    },
+    {
+      "id": "EFFECT_SPIRIT_MAYNOT_RETURN",
+      "category": "effect",
+      "code": 281,
+      "line": 547
+    },
+    {
+      "id": "EFFECT_CHANGE_ENVIRONMENT",
+      "category": "effect",
+      "code": 290,
+      "line": 548
+    },
+    {
+      "id": "EFFECT_NECRO_VALLEY",
+      "category": "effect",
+      "code": 291,
+      "line": 549
+    },
+    {
+      "id": "EFFECT_FORBIDDEN",
+      "category": "effect",
+      "code": 292,
+      "line": 550
+    },
+    {
+      "id": "EFFECT_NECRO_VALLEY_IM",
+      "category": "effect",
+      "code": 293,
+      "line": 551
+    },
+    {
+      "id": "EFFECT_REVERSE_DECK",
+      "category": "effect",
+      "code": 294,
+      "line": 552
+    },
+    {
+      "id": "EFFECT_REMOVE_BRAINWASHING",
+      "category": "effect",
+      "code": 295,
+      "line": 553
+    },
+    {
+      "id": "EFFECT_BP_TWICE",
+      "category": "effect",
+      "code": 296,
+      "line": 554
+    },
+    {
+      "id": "EFFECT_UNIQUE_CHECK",
+      "category": "effect",
+      "code": 297,
+      "line": 555
+    },
+    {
+      "id": "EFFECT_MATCH_KILL",
+      "category": "effect",
+      "code": 300,
+      "line": 556
+    },
+    {
+      "id": "EFFECT_SYNCHRO_CHECK",
+      "category": "effect",
+      "code": 310,
+      "line": 557
+    },
+    {
+      "id": "EFFECT_QP_ACT_IN_NTPHAND",
+      "category": "effect",
+      "code": 311,
+      "line": 558
+    },
+    {
+      "id": "EFFECT_MUST_BE_SMATERIAL",
+      "category": "effect",
+      "code": 312,
+      "line": 559
+    },
+    {
+      "id": "EFFECT_TO_GRAVE_REDIRECT_CB",
+      "category": "effect",
+      "code": 313,
+      "line": 560
+    },
+    {
+      "id": "EFFECT_CHANGE_INVOLVING_BATTLE_DAMAGE",
+      "category": "effect",
+      "code": 314,
+      "line": 561
+    },
+    {
+      "id": "EFFECT_CHANGE_RANK_FINAL",
+      "category": "effect",
+      "code": 315,
+      "line": 562
+    },
+    {
+      "id": "EFFECT_MUST_BE_FMATERIAL",
+      "category": "effect",
+      "code": 316,
+      "line": 563
+    },
+    {
+      "id": "EFFECT_MUST_BE_XMATERIAL",
+      "category": "effect",
+      "code": 317,
+      "line": 564
+    },
+    {
+      "id": "EFFECT_MUST_BE_LMATERIAL",
+      "category": "effect",
+      "code": 318,
+      "line": 565
+    },
+    {
+      "id": "EFFECT_SPSUMMON_PROC_G",
+      "category": "effect",
+      "code": 320,
+      "line": 566
+    },
+    {
+      "id": "EFFECT_SPSUMMON_COUNT_LIMIT",
+      "category": "effect",
+      "code": 330,
+      "line": 567
+    },
+    {
+      "id": "EFFECT_LEFT_SPSUMMON_COUNT",
+      "category": "effect",
+      "code": 331,
+      "line": 568
+    },
+    {
+      "id": "EFFECT_CANNOT_SELECT_BATTLE_TARGET",
+      "category": "effect",
+      "code": 332,
+      "line": 569
+    },
+    {
+      "id": "EFFECT_CANNOT_SELECT_EFFECT_TARGET",
+      "category": "effect",
+      "code": 333,
+      "line": 570
+    },
+    {
+      "id": "EFFECT_ADD_SETCODE",
+      "category": "effect",
+      "code": 334,
+      "line": 571
+    },
+    {
+      "id": "EFFECT_NO_EFFECT_DAMAGE",
+      "category": "effect",
+      "code": 335,
+      "line": 572
+    },
+    {
+      "id": "EFFECT_UNSUMMONABLE_CARD",
+      "category": "effect",
+      "code": 336,
+      "line": 573
+    },
+    {
+      "id": "EFFECT_DISABLE_CHAIN_FIELD",
+      "category": "effect",
+      "code": 337,
+      "line": 574
+    },
+    {
+      "id": "EFFECT_DISCARD_COST_CHANGE",
+      "category": "effect",
+      "code": 338,
+      "line": 575
+    },
+    {
+      "id": "EFFECT_HAND_SYNCHRO",
+      "category": "effect",
+      "code": 339,
+      "line": 576
+    },
+    {
+      "id": "EFFECT_ADD_FUSION_CODE",
+      "category": "effect",
+      "code": 340,
+      "line": 577
+    },
+    {
+      "id": "EFFECT_ADD_FUSION_SETCODE",
+      "category": "effect",
+      "code": 341,
+      "line": 578
+    },
+    {
+      "id": "EFFECT_RISE_TO_FULL_HEIGHT",
+      "category": "effect",
+      "code": 342,
+      "line": 579
+    },
+    {
+      "id": "EFFECT_ONLY_ATTACK_MONSTER",
+      "category": "effect",
+      "code": 343,
+      "line": 580
+    },
+    {
+      "id": "EFFECT_MUST_ATTACK_MONSTER",
+      "category": "effect",
+      "code": 344,
+      "line": 581
+    },
+    {
+      "id": "EFFECT_PATRICIAN_OF_DARKNESS",
+      "category": "effect",
+      "code": 345,
+      "line": 582
+    },
+    {
+      "id": "EFFECT_EXTRA_ATTACK_MONSTER",
+      "category": "effect",
+      "code": 346,
+      "line": 583
+    },
+    {
+      "id": "EFFECT_UNION_STATUS",
+      "category": "effect",
+      "code": 347,
+      "line": 584
+    },
+    {
+      "id": "EFFECT_OLDUNION_STATUS",
+      "category": "effect",
+      "code": 348,
+      "line": 585
+    },
+    {
+      "id": "EFFECT_ADD_FUSION_ATTRIBUTE",
+      "category": "effect",
+      "code": 349,
+      "line": 586
+    },
+    {
+      "id": "EFFECT_REMOVE_FUSION_ATTRIBUTE",
+      "category": "effect",
+      "code": 350,
+      "line": 587
+    },
+    {
+      "id": "EFFECT_CHANGE_FUSION_ATTRIBUTE",
+      "category": "effect",
+      "code": 351,
+      "line": 588
+    },
+    {
+      "id": "EFFECT_EXTRA_FUSION_MATERIAL",
+      "category": "effect",
+      "code": 352,
+      "line": 589
+    },
+    {
+      "id": "EFFECT_TUNER_MATERIAL_LIMIT",
+      "category": "effect",
+      "code": 353,
+      "line": 590
+    },
+    {
+      "id": "EFFECT_ADD_LINK_CODE",
+      "category": "effect",
+      "code": 354,
+      "line": 591
+    },
+    {
+      "id": "EFFECT_ADD_LINK_SETCODE",
+      "category": "effect",
+      "code": 355,
+      "line": 592
+    },
+    {
+      "id": "EFFECT_ADD_LINK_ATTRIBUTE",
+      "category": "effect",
+      "code": 356,
+      "line": 593
+    },
+    {
+      "id": "EFFECT_ADD_LINK_RACE",
+      "category": "effect",
+      "code": 357,
+      "line": 594
+    },
+    {
+      "id": "EFFECT_EXTRA_LINK_MATERIAL",
+      "category": "effect",
+      "code": 358,
+      "line": 595
+    },
+    {
+      "id": "EFFECT_QP_ACT_IN_SET_TURN",
+      "category": "effect",
+      "code": 359,
+      "line": 596
+    },
+    {
+      "id": "EFFECT_EXTRA_PENDULUM_SUMMON",
+      "category": "effect",
+      "code": 360,
+      "line": 597
+    },
+    {
+      "id": "EFFECT_MATERIAL_LIMIT",
+      "category": "effect",
+      "code": 361,
+      "line": 598
+    },
+    {
+      "id": "EFFECT_SET_BATTLE_ATTACK",
+      "category": "effect",
+      "code": 362,
+      "line": 599
+    },
+    {
+      "id": "EFFECT_SET_BATTLE_DEFENSE",
+      "category": "effect",
+      "code": 363,
+      "line": 600
+    },
+    {
+      "id": "EFFECT_OVERLAY_RITUAL_MATERIAL",
+      "category": "effect",
+      "code": 364,
+      "line": 601
+    },
+    {
+      "id": "EFFECT_CHANGE_GRAVE_ATTRIBUTE",
+      "category": "effect",
+      "code": 365,
+      "line": 602
+    },
+    {
+      "id": "EFFECT_CHANGE_GRAVE_RACE",
+      "category": "effect",
+      "code": 366,
+      "line": 603
+    },
+    {
+      "id": "EFFECT_ACTIVATION_COUNT_LIMIT",
+      "category": "effect",
+      "code": 367,
+      "line": 604
+    },
+    {
+      "id": "EFFECT_LIMIT_SPECIAL_SUMMON_POSITION",
+      "category": "effect",
+      "code": 368,
+      "line": 605
+    },
+    {
+      "id": "EFFECT_TUNER",
+      "category": "effect",
+      "code": 369,
+      "line": 606
+    },
+    {
+      "id": "EFFECT_KAISER_COLOSSEUM",
+      "category": "effect",
+      "code": 370,
+      "line": 607
+    },
+    {
+      "id": "EFFECT_REPLACE_DAMAGE",
+      "category": "effect",
+      "code": 371,
+      "line": 608
+    },
+    {
+      "id": "EFFECT_XYZ_MIN_COUNT",
+      "category": "effect",
+      "code": 372,
+      "line": 609
+    },
+    {
+      "id": "EFFECT_SYNCHRO_LEVEL_EX",
+      "category": "effect",
+      "code": 373,
+      "line": 610
+    },
+    {
+      "id": "EFFECT_RITUAL_LEVEL_EX",
+      "category": "effect",
+      "code": 374,
+      "line": 611
+    },
+    {
+      "id": "EFFECT_DOUBLE_XMATERIAL",
+      "category": "effect",
+      "code": 375,
+      "line": 612
+    },
+    {
+      "id": "EFFECT_REVEAL_ONFIELD",
+      "category": "effect",
+      "code": 376,
+      "line": 613
+    },
+    {
+      "id": "EFFECT_ADD_CARD_TYPE",
+      "category": "effect",
+      "code": 377,
+      "line": 614
+    },
+    {
+      "id": "EFFECT_REMOVE_CARD_TYPE",
+      "category": "effect",
+      "code": 378,
+      "line": 615
+    },
+    {
+      "id": "EFFECT_CHANGE_CARD_TYPE",
+      "category": "effect",
+      "code": 379,
+      "line": 616
+    },
+    {
+      "id": "EFFECT_FLAG_EFFECT",
+      "category": "property",
+      "code": 536870912,
+      "line": 618
+    },
+    {
+      "id": "EVENT_STARTUP",
+      "category": "event",
+      "code": 1000,
+      "line": 621
+    },
+    {
+      "id": "EVENT_FLIP",
+      "category": "event",
+      "code": 1001,
+      "line": 622
+    },
+    {
+      "id": "EVENT_FREE_CHAIN",
+      "category": "event",
+      "code": 1002,
+      "line": 623
+    },
+    {
+      "id": "EVENT_DESTROY",
+      "category": "event",
+      "code": 1010,
+      "line": 624
+    },
+    {
+      "id": "EVENT_REMOVE",
+      "category": "event",
+      "code": 1011,
+      "line": 625
+    },
+    {
+      "id": "EVENT_TO_HAND",
+      "category": "event",
+      "code": 1012,
+      "line": 626
+    },
+    {
+      "id": "EVENT_TO_DECK",
+      "category": "event",
+      "code": 1013,
+      "line": 627
+    },
+    {
+      "id": "EVENT_TO_GRAVE",
+      "category": "event",
+      "code": 1014,
+      "line": 628
+    },
+    {
+      "id": "EVENT_LEAVE_FIELD",
+      "category": "event",
+      "code": 1015,
+      "line": 629
+    },
+    {
+      "id": "EVENT_CHANGE_POS",
+      "category": "event",
+      "code": 1016,
+      "line": 630
+    },
+    {
+      "id": "EVENT_RELEASE",
+      "category": "event",
+      "code": 1017,
+      "line": 631
+    },
+    {
+      "id": "EVENT_DISCARD",
+      "category": "event",
+      "code": 1018,
+      "line": 632
+    },
+    {
+      "id": "EVENT_LEAVE_FIELD_P",
+      "category": "event",
+      "code": 1019,
+      "line": 633
+    },
+    {
+      "id": "EVENT_CHAIN_SOLVING",
+      "category": "event",
+      "code": 1020,
+      "line": 634
+    },
+    {
+      "id": "EVENT_CHAIN_ACTIVATING",
+      "category": "event",
+      "code": 1021,
+      "line": 635
+    },
+    {
+      "id": "EVENT_CHAIN_SOLVED",
+      "category": "event",
+      "code": 1022,
+      "line": 636
+    },
+    {
+      "id": "EVENT_CHAIN_ACTIVATED",
+      "category": "event",
+      "code": 1023,
+      "line": 637
+    },
+    {
+      "id": "EVENT_CHAIN_NEGATED",
+      "category": "event",
+      "code": 1024,
+      "line": 638
+    },
+    {
+      "id": "EVENT_CHAIN_DISABLED",
+      "category": "event",
+      "code": 1025,
+      "line": 639
+    },
+    {
+      "id": "EVENT_CHAIN_END",
+      "category": "event",
+      "code": 1026,
+      "line": 640
+    },
+    {
+      "id": "EVENT_CHAINING",
+      "category": "event",
+      "code": 1027,
+      "line": 641
+    },
+    {
+      "id": "EVENT_BECOME_TARGET",
+      "category": "event",
+      "code": 1028,
+      "line": 642
+    },
+    {
+      "id": "EVENT_DESTROYED",
+      "category": "event",
+      "code": 1029,
+      "line": 643
+    },
+    {
+      "id": "EVENT_MOVE",
+      "category": "event",
+      "code": 1030,
+      "line": 644
+    },
+    {
+      "id": "EVENT_LEAVE_GRAVE",
+      "category": "event",
+      "code": 1031,
+      "line": 645
+    },
+    {
+      "id": "EVENT_LEAVE_DECK",
+      "category": "event",
+      "code": 1032,
+      "line": 646
+    },
+    {
+      "id": "EVENT_ADJUST",
+      "category": "event",
+      "code": 1040,
+      "line": 647
+    },
+    {
+      "id": "EVENT_BREAK_EFFECT",
+      "category": "event",
+      "code": 1050,
+      "line": 648
+    },
+    {
+      "id": "EVENT_SUMMON_SUCCESS",
+      "category": "event",
+      "code": 1100,
+      "line": 649
+    },
+    {
+      "id": "EVENT_FLIP_SUMMON_SUCCESS",
+      "category": "event",
+      "code": 1101,
+      "line": 650
+    },
+    {
+      "id": "EVENT_SPSUMMON_SUCCESS",
+      "category": "event",
+      "code": 1102,
+      "line": 651
+    },
+    {
+      "id": "EVENT_SUMMON",
+      "category": "event",
+      "code": 1103,
+      "line": 652
+    },
+    {
+      "id": "EVENT_FLIP_SUMMON",
+      "category": "event",
+      "code": 1104,
+      "line": 653
+    },
+    {
+      "id": "EVENT_SPSUMMON",
+      "category": "event",
+      "code": 1105,
+      "line": 654
+    },
+    {
+      "id": "EVENT_MSET",
+      "category": "event",
+      "code": 1106,
+      "line": 655
+    },
+    {
+      "id": "EVENT_SSET",
+      "category": "event",
+      "code": 1107,
+      "line": 656
+    },
+    {
+      "id": "EVENT_BE_MATERIAL",
+      "category": "event",
+      "code": 1108,
+      "line": 657
+    },
+    {
+      "id": "EVENT_BE_PRE_MATERIAL",
+      "category": "event",
+      "code": 1109,
+      "line": 658
+    },
+    {
+      "id": "EVENT_DRAW",
+      "category": "event",
+      "code": 1110,
+      "line": 659
+    },
+    {
+      "id": "EVENT_DAMAGE",
+      "category": "event",
+      "code": 1111,
+      "line": 660
+    },
+    {
+      "id": "EVENT_RECOVER",
+      "category": "event",
+      "code": 1112,
+      "line": 661
+    },
+    {
+      "id": "EVENT_PREDRAW",
+      "category": "event",
+      "code": 1113,
+      "line": 662
+    },
+    {
+      "id": "EVENT_SUMMON_NEGATED",
+      "category": "event",
+      "code": 1114,
+      "line": 663
+    },
+    {
+      "id": "EVENT_FLIP_SUMMON_NEGATED",
+      "category": "event",
+      "code": 1115,
+      "line": 664
+    },
+    {
+      "id": "EVENT_SPSUMMON_NEGATED",
+      "category": "event",
+      "code": 1116,
+      "line": 665
+    },
+    {
+      "id": "EVENT_SPSUMMON_SUCCESS_G_P",
+      "category": "event",
+      "code": 1117,
+      "line": 666
+    },
+    {
+      "id": "EVENT_CONTROL_CHANGED",
+      "category": "event",
+      "code": 1120,
+      "line": 667
+    },
+    {
+      "id": "EVENT_EQUIP",
+      "category": "event",
+      "code": 1121,
+      "line": 668
+    },
+    {
+      "id": "EVENT_ATTACK_ANNOUNCE",
+      "category": "event",
+      "code": 1130,
+      "line": 669
+    },
+    {
+      "id": "EVENT_BE_BATTLE_TARGET",
+      "category": "event",
+      "code": 1131,
+      "line": 670
+    },
+    {
+      "id": "EVENT_BATTLE_START",
+      "category": "event",
+      "code": 1132,
+      "line": 671
+    },
+    {
+      "id": "EVENT_BATTLE_CONFIRM",
+      "category": "event",
+      "code": 1133,
+      "line": 672
+    },
+    {
+      "id": "EVENT_PRE_DAMAGE_CALCULATE",
+      "category": "event",
+      "code": 1134,
+      "line": 673
+    },
+    {
+      "id": "EVENT_DAMAGE_CALCULATING",
+      "category": "event",
+      "code": 1135,
+      "line": 674
+    },
+    {
+      "id": "EVENT_PRE_BATTLE_DAMAGE",
+      "category": "event",
+      "code": 1136,
+      "line": 675
+    },
+    {
+      "id": "EVENT_BATTLE_END",
+      "category": "event",
+      "code": 1137,
+      "line": 676
+    },
+    {
+      "id": "EVENT_BATTLED",
+      "category": "event",
+      "code": 1138,
+      "line": 677
+    },
+    {
+      "id": "EVENT_BATTLE_DESTROYING",
+      "category": "event",
+      "code": 1139,
+      "line": 678
+    },
+    {
+      "id": "EVENT_BATTLE_DESTROYED",
+      "category": "event",
+      "code": 1140,
+      "line": 679
+    },
+    {
+      "id": "EVENT_DAMAGE_STEP_END",
+      "category": "event",
+      "code": 1141,
+      "line": 680
+    },
+    {
+      "id": "EVENT_ATTACK_DISABLED",
+      "category": "event",
+      "code": 1142,
+      "line": 681
+    },
+    {
+      "id": "EVENT_BATTLE_DAMAGE",
+      "category": "event",
+      "code": 1143,
+      "line": 682
+    },
+    {
+      "id": "EVENT_TOSS_DICE",
+      "category": "event",
+      "code": 1150,
+      "line": 683
+    },
+    {
+      "id": "EVENT_TOSS_COIN",
+      "category": "event",
+      "code": 1151,
+      "line": 684
+    },
+    {
+      "id": "EVENT_TOSS_COIN_NEGATE",
+      "category": "event",
+      "code": 1152,
+      "line": 685
+    },
+    {
+      "id": "EVENT_TOSS_DICE_NEGATE",
+      "category": "event",
+      "code": 1153,
+      "line": 686
+    },
+    {
+      "id": "EVENT_LEVEL_UP",
+      "category": "event",
+      "code": 1200,
+      "line": 687
+    },
+    {
+      "id": "EVENT_PAY_LPCOST",
+      "category": "event",
+      "code": 1201,
+      "line": 688
+    },
+    {
+      "id": "EVENT_DETACH_MATERIAL",
+      "category": "event",
+      "code": 1202,
+      "line": 689
+    },
+    {
+      "id": "EVENT_RETURN_TO_GRAVE",
+      "category": "event",
+      "code": 1203,
+      "line": 690
+    },
+    {
+      "id": "EVENT_TURN_END",
+      "category": "event",
+      "code": 1210,
+      "line": 691
+    },
+    {
+      "id": "EVENT_PHASE",
+      "category": "event",
+      "code": 4096,
+      "line": 692
+    },
+    {
+      "id": "EVENT_PHASE_START",
+      "category": "event",
+      "code": 8192,
+      "line": 693
+    },
+    {
+      "id": "EVENT_ADD_COUNTER",
+      "category": "event",
+      "code": 65536,
+      "line": 694
+    },
+    {
+      "id": "EVENT_REMOVE_COUNTER",
+      "category": "event",
+      "code": 131072,
+      "line": 695
+    },
+    {
+      "id": "EVENT_CUSTOM",
+      "category": "event",
+      "code": 268435456,
+      "line": 696
+    },
+    {
+      "id": "CATEGORY_DESTROY",
+      "category": "category",
+      "code": 1,
+      "line": 699
+    },
+    {
+      "id": "CATEGORY_RELEASE",
+      "category": "category",
+      "code": 2,
+      "line": 700
+    },
+    {
+      "id": "CATEGORY_REMOVE",
+      "category": "category",
+      "code": 4,
+      "line": 701
+    },
+    {
+      "id": "CATEGORY_TOHAND",
+      "category": "category",
+      "code": 8,
+      "line": 702
+    },
+    {
+      "id": "CATEGORY_TODECK",
+      "category": "category",
+      "code": 16,
+      "line": 703
+    },
+    {
+      "id": "CATEGORY_TOGRAVE",
+      "category": "category",
+      "code": 32,
+      "line": 704
+    },
+    {
+      "id": "CATEGORY_DECKDES",
+      "category": "category",
+      "code": 64,
+      "line": 705
+    },
+    {
+      "id": "CATEGORY_HANDES_SELF",
+      "category": "category",
+      "code": 128,
+      "line": 706
+    },
+    {
+      "id": "CATEGORY_SUMMON",
+      "category": "category",
+      "code": 256,
+      "line": 707
+    },
+    {
+      "id": "CATEGORY_SPECIAL_SUMMON",
+      "category": "category",
+      "code": 512,
+      "line": 708
+    },
+    {
+      "id": "CATEGORY_TOKEN",
+      "category": "category",
+      "code": 1024,
+      "line": 709
+    },
+    {
+      "id": "CATEGORY_GRAVE_ACTION",
+      "category": "category",
+      "code": 2048,
+      "line": 710
+    },
+    {
+      "id": "CATEGORY_POSITION",
+      "category": "category",
+      "code": 4096,
+      "line": 711
+    },
+    {
+      "id": "CATEGORY_CONTROL",
+      "category": "category",
+      "code": 8192,
+      "line": 712
+    },
+    {
+      "id": "CATEGORY_DISABLE",
+      "category": "category",
+      "code": 16384,
+      "line": 713
+    },
+    {
+      "id": "CATEGORY_DISABLE_SUMMON",
+      "category": "category",
+      "code": 32768,
+      "line": 714
+    },
+    {
+      "id": "CATEGORY_DRAW",
+      "category": "category",
+      "code": 65536,
+      "line": 715
+    },
+    {
+      "id": "CATEGORY_SEARCH",
+      "category": "category",
+      "code": 131072,
+      "line": 716
+    },
+    {
+      "id": "CATEGORY_EQUIP",
+      "category": "category",
+      "code": 262144,
+      "line": 717
+    },
+    {
+      "id": "CATEGORY_DAMAGE",
+      "category": "category",
+      "code": 524288,
+      "line": 718
+    },
+    {
+      "id": "CATEGORY_RECOVER",
+      "category": "category",
+      "code": 1048576,
+      "line": 719
+    },
+    {
+      "id": "CATEGORY_ATKCHANGE",
+      "category": "category",
+      "code": 2097152,
+      "line": 720
+    },
+    {
+      "id": "CATEGORY_DEFCHANGE",
+      "category": "category",
+      "code": 4194304,
+      "line": 721
+    },
+    {
+      "id": "CATEGORY_COUNTER",
+      "category": "category",
+      "code": 8388608,
+      "line": 722
+    },
+    {
+      "id": "CATEGORY_COIN",
+      "category": "category",
+      "code": 16777216,
+      "line": 723
+    },
+    {
+      "id": "CATEGORY_DICE",
+      "category": "category",
+      "code": 33554432,
+      "line": 724
+    },
+    {
+      "id": "CATEGORY_LEAVE_GRAVE",
+      "category": "category",
+      "code": 67108864,
+      "line": 725
+    },
+    {
+      "id": "CATEGORY_GRAVE_SPSUMMON",
+      "category": "category",
+      "code": 134217728,
+      "line": 726
+    },
+    {
+      "id": "CATEGORY_NEGATE",
+      "category": "category",
+      "code": 268435456,
+      "line": 727
+    },
+    {
+      "id": "CATEGORY_ANNOUNCE",
+      "category": "category",
+      "code": 536870912,
+      "line": 728
+    },
+    {
+      "id": "CATEGORY_FUSION_SUMMON",
+      "category": "category",
+      "code": 1073741824,
+      "line": 729
+    },
+    {
+      "id": "CATEGORY_TOEXTRA",
+      "category": "category",
+      "code": 2147483648,
+      "line": 730
+    },
+    {
+      "id": "CATEGORY_MSET",
+      "category": "category",
+      "code": 4294967296,
+      "line": 731
+    },
+    {
+      "id": "CATEGORY_SSET",
+      "category": "category",
+      "code": 8589934592,
+      "line": 732
+    },
+    {
+      "id": "CATEGORY_HANDES_OPPO",
+      "category": "category",
+      "code": 17179869184,
+      "line": 733
+    },
+    {
+      "id": "CATEGORY_HANDES",
+      "category": "category",
+      "code": 17179869312,
+      "line": 734
+    },
+    {
+      "id": "EFFECT_COUNT_CODE_OATH",
+      "category": "count",
+      "code": 268435456,
+      "line": 879
+    },
+    {
+      "id": "EFFECT_COUNT_CODE_DUEL",
+      "category": "count",
+      "code": 536870912,
+      "line": 880
+    },
+    {
+      "id": "EFFECT_COUNT_CODE_CHAIN",
+      "category": "count",
+      "code": 1073741824,
+      "line": 881
+    },
+    {
+      "id": "EFFECT_COUNT_CODE_SINGLE",
+      "category": "count",
+      "code": 1,
+      "line": 882
+    }
+  ]
+}

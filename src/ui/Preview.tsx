@@ -1,9 +1,11 @@
+import { useI18n } from "../i18n";
 import { useEffect, useRef, useState } from "react";
 import { Image, LoaderCircle } from "lucide-react";
 import { renderCard } from "../io/render";
 import type { Card } from "../domain/model";
 
 export default function Preview({ card }: { card: Card }) {
+  const { t } = useI18n();
   const [url, setUrl] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -36,20 +38,20 @@ export default function Preview({ card }: { card: Card }) {
   return (
     <div className="preview-canvas">
       {url ? (
-        <img src={url} alt={`${card.name} 完整卡图`} />
+        <img src={url} alt={t("{0} 完整卡图", { "0": card.name })} />
       ) : (
         <div className="preview-placeholder">
           <Image size={38} />
-          <span>生成卡片预览</span>
+          <span>{t("生成卡片预览")}</span>
         </div>
       )}
       {busy && (
         <span className="preview-loading">
           <LoaderCircle size={13} className="spin" />
-          绘制中
+          {t("绘制中")}
         </span>
       )}
-      {error && <p className="preview-error">{error}</p>}
+      {error && <p className="preview-error">{t(error)}</p>}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n";
 import { ImagePlus, X } from "lucide-react";
 import type { Card, CardProject } from "../domain/model";
 import { Field, NumberInput, Select } from "./Fields";
@@ -21,6 +22,7 @@ export default function CardEditor({
   onChange: (patch: Partial<Card>) => void;
   onError: (message: string) => void;
 }) {
+  const { t } = useI18n();
   const monster = !["spell", "trap"].includes(card.kind);
   async function upload(file?: File) {
     if (!file) return;
@@ -40,7 +42,8 @@ export default function CardEditor({
   return (
     <div className="card-form">
       <div className="section-label">
-        <span>01</span> 卡片信息
+        <span>01</span>
+        {t("卡片信息")}
       </div>
       <div className="form-grid">
         <Field label="卡片名称" wide>
@@ -60,10 +63,14 @@ export default function CardEditor({
             onChange={(code) => onChange({ code, reviewRequired: true })}
           />
         </Field>
-        <Field label="卡面语言">
+        <Field
+          label="卡面语言"
+          hint="独立于界面语言，控制卡框、字体和系统标签；不会翻译卡名或卡片正文。"
+        >
           <Select
             value={card.language}
             options={LANGUAGES}
+            translateOptions={false}
             onChange={(language) => onChange({ language })}
           />
         </Field>
@@ -129,10 +136,10 @@ export default function CardEditor({
             <Field
               label={
                 card.kind === "xyz"
-                  ? "阶级"
+                  ? t("阶级")
                   : card.kind === "link"
-                    ? "LINK 值"
-                    : "等级"
+                    ? t("LINK 值")
+                    : t("等级")
               }
             >
               <NumberInput
@@ -164,7 +171,7 @@ export default function CardEditor({
                 checked={card.tuner}
                 onChange={(e) => onChange({ tuner: e.target.checked })}
               />
-              调整
+              {t("调整")}
             </label>
             {!["normal", "token", "effect"].includes(card.kind) && (
               <label className="check">
@@ -178,7 +185,7 @@ export default function CardEditor({
                     })
                   }
                 />
-                效果怪兽
+                {t("效果怪兽")}
               </label>
             )}
             {card.kind !== "link" && (
@@ -193,7 +200,7 @@ export default function CardEditor({
                     })
                   }
                 />
-                灵摆怪兽
+                {t("灵摆怪兽")}
               </label>
             )}
           </>
@@ -255,7 +262,7 @@ export default function CardEditor({
                 <button
                   type="button"
                   key={bit}
-                  aria-label={`连接箭头 ${label}`}
+                  aria-label={t("连接箭头 {0}", { "0": label })}
                   className={`chip ${card.linkMarkers.includes(bit) ? "active" : ""}`}
                   onClick={() =>
                     onChange({
@@ -273,10 +280,11 @@ export default function CardEditor({
         )}
       </div>
       <div className="section-label">
-        <span>02</span> 效果与原文
+        <span>02</span>
+        {t("效果与原文")}
       </div>
       <Field
-        label={card.kind === "normal" ? "描述文字" : "卡片效果"}
+        label={card.kind === "normal" ? t("描述文字") : t("卡片效果")}
         wide
         hint="可以使用中文、英文 PSCT 或日文。匹配不完整时，请补充积木或完整脚本。"
       >
@@ -321,9 +329,9 @@ export default function CardEditor({
         </>
       )}
       <details className="details">
-        <summary>翻译 / 设计备注</summary>
+        <summary>{t("翻译 / 设计备注")}</summary>
         <p className="field-help">
-          MSE 的中文注释放在这里，仅供参考，不自动覆盖正文。
+          {t("MSE 的中文注释放在这里，仅供参考，不自动覆盖正文。")}
         </p>
         <textarea
           rows={4}
@@ -333,7 +341,7 @@ export default function CardEditor({
       </details>
       {["synchro", "xyz", "link", "fusion"].includes(card.kind) && (
         <details className="details" open>
-          <summary>基本召唤手续</summary>
+          <summary>{t("基本召唤手续")}</summary>
           <div className="form-grid">
             <Field label="手续">
               <Select
@@ -425,20 +433,21 @@ export default function CardEditor({
             )}
           </div>
           <p className="field-help">
-            复合素材条件、特殊召唤限制或替代手续请使用完整 Lua。
+            {t("复合素材条件、特殊召唤限制或替代手续请使用完整 Lua。")}
           </p>
         </details>
       )}
       <div className="section-label">
-        <span>03</span> 中间图
+        <span>03</span>
+        {t("中间图")}
       </div>
       <div className="art-upload">
         {card.art ? (
           <>
-            <img src={card.art} alt="中间图" />
+            <img src={card.art} alt={t("中间图")} />
             <button
               className="icon-button remove-art"
-              aria-label="移除中间图"
+              aria-label={t("移除中间图")}
               onClick={() => onChange({ art: "" })}
             >
               <X size={16} />
@@ -448,8 +457,8 @@ export default function CardEditor({
           <ImagePlus size={28} />
         )}
         <label className="upload-label">
-          <strong>{card.art ? "替换中间图" : "上传你的中间图"}</strong>
-          <small>PNG / JPEG / WebP · 最大 20 MB</small>
+          <strong>{card.art ? t("替换中间图") : t("上传你的中间图")}</strong>
+          <small>{t("PNG / JPEG / WebP · 最大 20 MB")}</small>
           <input
             type="file"
             accept="image/png,image/jpeg,image/webp,image/gif"

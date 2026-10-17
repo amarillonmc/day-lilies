@@ -5,9 +5,26 @@ import type {
   CompileResult,
   Diagnostic,
   EffectBlock,
+  TargetCore,
   Zone,
 } from "./model";
 import { ATTRIBUTES, RACES, TEMPLATES, TRIGGERS } from "./catalog";
+import {
+  blockOperations,
+  emitAdvanced,
+  emitOperations,
+  extraFilterClauses,
+  operationCategory,
+  operationsHaveTarget,
+  usesOperations,
+  validateAdvanced,
+  validateFilterExtra,
+  validateOperations,
+} from "./operations";
+import {
+  findUnsupportedCoreSymbols,
+  KOISHI_CAPABILITIES,
+} from "./engine-capabilities";
 
 const targeted = new Set([
   "recover",
@@ -63,6 +80,7 @@ const zones: Record<Zone, string> = {
   spelltrap: "LOCATION_SZONE",
   banished: "LOCATION_REMOVED",
   "hand-grave": "LOCATION_HAND+LOCATION_GRAVE",
+  extra: "LOCATION_EXTRA",
 };
 const meta: Record<
   string,
@@ -144,7 +162,7 @@ export function allocateCountKeys(project: CardProject): Map<string, number> {
   return keys;
 }
 
-function validateCard(card: Card): Diagnostic[] {
+function validateCard(card: Card, target: TargetCore = "ygopro"): Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
   const add = (
     severity: Diagnostic["severity"],
@@ -157,6 +175,40 @@ function validateCard(card: Card): Diagnostic[] {
       cardUid: card.uid,
       effectUid: block?.uid,
     });
+  const checkCompatibility = (lua: string, block?: EffectBlock) => {
+    for (const symbol of findUnsupportedCoreSymbols(lua, target))
+      add(
+        "error",
+        `${symbol} 是 KoishiPRO 专有能力，上游 YGOPRO 目标不支持。`,
+        block,
+      );
+  };
+  if (card.scriptMode === "custom") checkCompatibility(card.customLua);
+  else
+    for (const block of card.effects) {
+      if (target === "ygopro" && block.advanced?.requiredCore === "koishipro")
+        add(
+          "error",
+          "此高级效果已标记为 KoishiPRO 专有，不能导出到上游 YGOPRO。",
+          block,
+        );
+      if (block.advanced) {
+        const emitted = emitAdvanced(card, block, "s.compat", "effect");
+        checkCompatibility(
+          `function s.check(c)\n${emitted.init.join("\n")}\nend\n${emitted.funcs.join("\n")}`,
+          block,
+        );
+      }
+      for (const filter of [
+        block.filter,
+        ...(block.operations || []).map((op) => op.filter),
+      ])
+        if (filter.expression)
+          checkCompatibility(
+            `function check(c,e,tp) return (${filter.expression}) end`,
+            block,
+          );
+    }
   if (!validCode(card.code))
     add(
       "error",
@@ -330,15 +382,32 @@ function validateCard(card: Card): Diagnostic[] {
       "warning",
       "仪式怪兽生成苏生限制；仪式召唤魔法／效果请另外配置自定义 Lua。",
     );
-  if (isSpellTrap(card) && ["equip", "ritual"].includes(card.subtype))
+  if (
+    isSpellTrap(card) &&
+    ["equip", "ritual"].includes(card.subtype) &&
+    !card.effects.some(
+      (b) =>
+        b.template === "custom-effect" ||
+        b.template === "equip" ||
+        (b.template === "sequence" &&
+          b.operations?.some((op) => op.action === "equip")),
+    )
+  )
     add("error", "装备／仪式魔法需要专用处理，首版请使用自定义 Lua。");
   const activations = card.effects.filter(
-    (b) => b.trigger === "activate" && b.template !== "self-summon",
+    (b) =>
+      (b.trigger === "activate" ||
+        (b.trigger === "chain" &&
+          isSpellTrap(card) &&
+          b.range !== "grave" &&
+          b.range !== "banished")) &&
+      b.template !== "self-summon" &&
+      b.template !== "custom-effect",
   );
   if (activations.length > 1)
     add(
       "error",
-      "一张卡只能配置一个卡的发动积木；同一次发动内的复合处理请使用自定义 Lua。",
+      "一张卡只能配置一个卡的发动积木；同一次发动内请使用复合效果拼图。",
     );
   if (
     card.effects.filter(
@@ -380,6 +449,11 @@ function validateCard(card: Card): Diagnostic[] {
         "banish-self",
         "send-self",
         "lp",
+        "release-self",
+        "release-monster",
+        "banish-grave",
+        "detach",
+        "remove-counter",
       ].includes(block.cost)
     )
       add("error", "未知费用类型。", block);
@@ -409,11 +483,22 @@ function validateCard(card: Card): Diagnostic[] {
     )
       add("error", "请填写有效的费用数量。", block);
     if (
-      ["banish-self", "send-self"].includes(block.cost) &&
+      ["banish-self", "send-self", "release-self"].includes(block.cost) &&
       block.costAmount !== 1
     )
       add("error", "自身费用的数量必须为 1。", block);
+    if (
+      block.cost === "remove-counter" &&
+      !integer(block.counterType ?? 0x1001, 1, 65535)
+    )
+      add("error", "指示物费用需要有效的指示物类型。", block);
     const f = block.filter;
+    for (const error of [
+      ...validateFilterExtra(f),
+      ...validateOperations(block),
+      ...validateAdvanced(block),
+    ])
+      add("error", error, block);
     if (f.setcode != null && !integer(f.setcode, 1, 65535))
       add("error", "筛选的系列代码须为 1–65535。", block);
     if (f.race != null && !RACES.some((r) => r.value === f.race))
@@ -441,7 +526,19 @@ function validateCard(card: Card): Diagnostic[] {
       add("error", "灵摆效果的自身发动区域必须为场上灵摆区。", block);
     if (
       block.scope === "pendulum" &&
-      !["activate", "ignition", "quick"].includes(block.trigger)
+      ![
+        "activate",
+        "ignition",
+        "quick",
+        "chain",
+        "standby",
+        "end-phase",
+        "any-summon",
+        "any-special-summon",
+        "attack-announce",
+        "damage",
+      ].includes(block.trigger) &&
+      block.template !== "custom-effect"
     )
       add("error", "首版灵摆效果支持卡的发动、起动或快速入口。", block);
     if (
@@ -456,7 +553,11 @@ function validateCard(card: Card): Diagnostic[] {
         "墓地／除外／手牌中的单独效果请使用起动或快速入口，不能当作魔陷卡的发动。",
         block,
       );
-    if (card.kind === "trap" && block.trigger === "ignition")
+    if (
+      card.kind === "trap" &&
+      block.trigger === "ignition" &&
+      block.template !== "custom-effect"
+    )
       add(
         "error",
         "陷阱效果不能作为怪兽式起动效果；请改用快速入口，特殊阶段条件使用自定义 Lua。",
@@ -480,7 +581,12 @@ function validateCard(card: Card): Diagnostic[] {
         "普通魔陷的场上非发动效果需要自定义 Lua；或改为永续／场地卡。",
         block,
       );
-    if (card.kind === "trap" && card.subtype === "counter")
+    if (
+      card.kind === "trap" &&
+      card.subtype === "counter" &&
+      block.trigger !== "chain" &&
+      block.template !== "custom-effect"
+    )
       add("error", "反击陷阱需要连锁条件，首版请使用自定义 Lua。", block);
     if (block.template === "self-summon") {
       if (
@@ -542,7 +648,9 @@ function validateCard(card: Card): Diagnostic[] {
 }
 
 export function validateProject(project: CardProject): Diagnostic[] {
-  const diagnostics = project.cards.flatMap(validateCard);
+  const diagnostics = project.cards.flatMap((card) =>
+    validateCard(card, project.target),
+  );
   const codes = new Map<number, number>();
   for (const card of project.cards)
     codes.set(card.code, (codes.get(card.code) || 0) + 1);
@@ -600,6 +708,7 @@ function filterExpression(block: EffectBlock) {
   if (f.maxLevel != null) clauses.push(`c:IsLevelBelow(${f.maxLevel})`);
   if (f.excludeSelfName) clauses.push("not c:IsCode(id)");
   if (f.faceup) clauses.push("c:IsFaceup()");
+  clauses.push(...extraFilterClauses(f));
   if (block.template === "boost" && block.attack === 0 && block.defense !== 0)
     clauses.push("c:IsHasDefense()");
   if (meta[block.template]?.ability)
@@ -630,6 +739,12 @@ function emitBlock(
   const baseArgs = "e,tp,eg,ep,ev,re,r,rp";
   const key = countKeys.get(countIdentity(card, block, index));
   const setCount = () => {
+    if (
+      block.count === "none" &&
+      ["standby", "end-phase"].includes(block.trigger) &&
+      block.template !== "custom-effect"
+    )
+      init.push(`${ev}:SetCountLimit(1)`);
     if (block.count === "soft")
       init.push(
         `${ev}:SetCountLimit(1${block.trigger === "summon-or-special" ? ",EFFECT_COUNT_CODE_SINGLE" : ""})`,
@@ -643,6 +758,13 @@ function emitBlock(
     `local ${ev}=Effect.CreateEffect(c)`,
     `${ev}:SetDescription(aux.Stringid(id,${index}))`,
   );
+  if (block.template === "custom-effect") {
+    const custom = emitAdvanced(card, block, fn, ev);
+    init.push(...custom.init);
+    setCount();
+    init.push(`c:RegisterEffect(${ev})`);
+    return { init, funcs: custom.funcs };
+  }
   if (block.template === "self-summon") {
     init.push(
       `${ev}:SetType(EFFECT_TYPE_FIELD)`,
@@ -668,21 +790,45 @@ function emitBlock(
         ]
           .filter(Boolean)
           .join("+")
-      : meta[block.template].category;
+      : usesOperations(block)
+        ? operationCategory(block)
+        : meta[block.template].category;
   init.push(`${ev}:SetCategory(${category})`);
-  const properties = targeted.has(block.template)
-    ? ["EFFECT_FLAG_CARD_TARGET"]
-    : block.template === "draw"
-      ? ["EFFECT_FLAG_PLAYER_TARGET"]
-      : [];
+  const properties =
+    targeted.has(block.template) ||
+    (usesOperations(block) && operationsHaveTarget(block))
+      ? ["EFFECT_FLAG_CARD_TARGET"]
+      : block.template === "draw"
+        ? ["EFFECT_FLAG_PLAYER_TARGET"]
+        : [];
   const triggerEvents: Record<string, string> = {
     summon: "EVENT_SUMMON_SUCCESS",
     "special-summon": "EVENT_SPSUMMON_SUCCESS",
     "summon-or-special": "EVENT_SUMMON_SUCCESS",
     flip: "EVENT_FLIP",
     "sent-to-grave": "EVENT_TO_GRAVE",
+    destroyed: "EVENT_DESTROYED",
+    banished: "EVENT_REMOVE",
+    "to-hand": "EVENT_TO_HAND",
+    "to-deck": "EVENT_TO_DECK",
+    "battle-destroying": "EVENT_BATTLE_DESTROYING",
+    "battle-destroyed": "EVENT_BATTLE_DESTROYED",
+    damage: "EVENT_DAMAGE",
+    "attack-announce": "EVENT_ATTACK_ANNOUNCE",
+    standby: "EVENT_PHASE+PHASE_STANDBY",
+    "end-phase": "EVENT_PHASE+PHASE_END",
+    "any-summon": "EVENT_SUMMON_SUCCESS",
+    "any-special-summon": "EVENT_SPSUMMON_SUCCESS",
   };
-  if (block.trigger === "activate")
+  if (block.trigger === "chain") {
+    const activation =
+      isSpellTrap(card) && (!block.range || block.range === "field");
+    init.push(
+      `${ev}:SetType(${activation ? "EFFECT_TYPE_ACTIVATE" : "EFFECT_TYPE_QUICK_O"})`,
+      `${ev}:SetCode(EVENT_CHAINING)`,
+    );
+    if (!activation) init.push(`${ev}:SetRange(${range(card, block)})`);
+  } else if (block.trigger === "activate")
     init.push(
       `${ev}:SetType(EFFECT_TYPE_ACTIVATE)`,
       `${ev}:SetCode(EVENT_FREE_CHAIN)`,
@@ -694,10 +840,19 @@ function emitBlock(
     );
     if (block.trigger === "quick") init.push(`${ev}:SetCode(EVENT_FREE_CHAIN)`);
   } else {
+    const fieldEvent = [
+      "damage",
+      "attack-announce",
+      "standby",
+      "end-phase",
+      "any-summon",
+      "any-special-summon",
+    ].includes(block.trigger);
     init.push(
-      `${ev}:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_${block.optional ? "O" : "F"})`,
+      `${ev}:SetType(${fieldEvent ? "EFFECT_TYPE_FIELD" : "EFFECT_TYPE_SINGLE"}+EFFECT_TYPE_TRIGGER_${block.optional ? "O" : "F"})`,
       `${ev}:SetCode(${triggerEvents[block.trigger]})`,
     );
+    if (fieldEvent) init.push(`${ev}:SetRange(${range(card, block)})`);
     properties.push("EFFECT_FLAG_DELAY");
     if (block.trigger === "sent-to-grave")
       properties.push("EFFECT_FLAG_DAMAGE_STEP");
@@ -706,6 +861,8 @@ function emitBlock(
     init.push(`${ev}:SetProperty(${properties.join("+")})`);
   setCount();
   const conditions: string[] = [];
+  if (block.trigger === "chain")
+    conditions.push("re~=nil", "re:GetHandler()~=e:GetHandler()");
   if (block.condition !== "none") conditions.push(conditionExpression(block));
   if (conditions.length) {
     init.push(`${ev}:SetCondition(${fn}condition)`);
@@ -735,6 +892,34 @@ function emitBlock(
         "if chk==0 then return e:GetHandler():IsAbleToRemoveAsCost() end",
         "Duel.Remove(e:GetHandler(),POS_FACEUP,REASON_COST)",
       );
+    else if (block.cost === "release-self")
+      cost.push(
+        "if chk==0 then return e:GetHandler():IsReleasable() end",
+        "Duel.Release(e:GetHandler(),REASON_COST)",
+      );
+    else if (block.cost === "release-monster")
+      cost.push(
+        `if chk==0 then return Duel.CheckReleaseGroup(tp,nil,${block.costAmount},e:GetHandler()) end`,
+        `local g=Duel.SelectReleaseGroup(tp,nil,${block.costAmount},${block.costAmount},e:GetHandler())`,
+        "Duel.Release(g,REASON_COST)",
+      );
+    else if (block.cost === "banish-grave")
+      cost.push(
+        `if chk==0 then return Duel.IsExistingMatchingCard(Card.IsAbleToRemoveAsCost,tp,LOCATION_GRAVE,0,${block.costAmount},nil) end`,
+        "Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)",
+        `local g=Duel.SelectMatchingCard(tp,Card.IsAbleToRemoveAsCost,tp,LOCATION_GRAVE,0,${block.costAmount},${block.costAmount},nil)`,
+        "Duel.Remove(g,POS_FACEUP,REASON_COST)",
+      );
+    else if (block.cost === "detach")
+      cost.push(
+        `if chk==0 then return e:GetHandler():CheckRemoveOverlayCard(tp,${block.costAmount},REASON_COST) end`,
+        `e:GetHandler():RemoveOverlayCard(tp,${block.costAmount},${block.costAmount},REASON_COST)`,
+      );
+    else if (block.cost === "remove-counter")
+      cost.push(
+        `if chk==0 then return e:GetHandler():IsCanRemoveCounter(tp,${block.counterType ?? 0x1001},${block.costAmount},REASON_COST) end`,
+        `e:GetHandler():RemoveCounter(tp,${block.counterType ?? 0x1001},${block.costAmount},REASON_COST)`,
+      );
     else
       cost.push(
         "if chk==0 then return e:GetHandler():IsAbleToGraveAsCost() end",
@@ -753,6 +938,13 @@ function emitBlock(
       `${ev}b:SetCode(EVENT_SPSUMMON_SUCCESS)`,
       `c:RegisterEffect(${ev}b)`,
     );
+  if (usesOperations(block)) {
+    for (const op of blockOperations(block))
+      if (op.action === "add-counter" && op.selection === "self")
+        init.unshift(`c:EnableCounterPermit(${op.counterType ?? 0x1001})`);
+    funcs.push(...emitOperations(block, fn, index));
+    return { init, funcs };
+  }
   if (block.template === "draw") {
     const ps =
       block.players === "both"
@@ -877,9 +1069,15 @@ function emitBlock(
 }
 
 export function compileCard(card: Card, project: CardProject): CompileResult {
-  const diagnostics = validateCard(card);
+  const diagnostics = validateCard(card, project.target);
   if (card.scriptMode === "custom")
-    return { lua: card.customLua, strings: card.customStrings, diagnostics };
+    return {
+      lua: diagnostics.some((d) => d.severity === "error")
+        ? ""
+        : card.customLua,
+      strings: card.customStrings,
+      diagnostics,
+    };
   if (diagnostics.some((d) => d.severity === "error"))
     return { lua: "", strings: [], diagnostics };
   const init: string[] = [],
@@ -903,7 +1101,15 @@ export function compileCard(card: Card, project: CardProject): CompileResult {
     init.push(
       `aux.AddFusionProcMix(c,true,true,${proc.materialCodes.join(",")})`,
     );
-  if (isSpellTrap(card) && !card.effects.some((b) => b.trigger === "activate"))
+  if (
+    isSpellTrap(card) &&
+    !card.effects.some(
+      (b) =>
+        b.trigger === "activate" ||
+        (b.trigger === "chain" && (!b.range || b.range === "field")) ||
+        b.advanced?.type.includes("EFFECT_TYPE_ACTIVATE"),
+    )
+  )
     init.push(
       "local activation=Effect.CreateEffect(c)",
       "activation:SetType(EFFECT_TYPE_ACTIVATE)",
@@ -928,7 +1134,16 @@ export function compileCard(card: Card, project: CardProject): CompileResult {
     functions.push(...result.funcs);
   });
   const title = card.name.replace(/[\r\n\u2028\u2029]+/g, " ");
-  const lua = `-- ${title}\n-- Generated by Day Lilies. Target: ${project.target}; author must playtest.\nlocal s,id,o=GetID()\nfunction s.initial_effect(c)\n${init.map((line) => `\t${line}`).join("\n")}\nend\n\n${functions.join("\n\n")}\n`;
+  const body = `${init.join("\n")}\n${functions.join("\n")}`;
+  const extensionConstants =
+    project.target === "koishipro"
+      ? KOISHI_CAPABILITIES.filter((feature) =>
+          new RegExp(`\\b${feature.id}\\b`).test(body),
+        )
+          .map((feature) => `local ${feature.id}=${feature.code}\n`)
+          .join("")
+      : "";
+  const lua = `-- ${title}\n-- Generated by Day Lilies. Target: ${project.target}; author must playtest.\nlocal s,id,o=GetID()\n${extensionConstants}function s.initial_effect(c)\n${init.map((line) => `\t${line}`).join("\n")}\nend\n\n${functions.join("\n\n")}\n`;
   try {
     luaparse.parse(lua, { luaVersion: "5.3" });
   } catch (error) {

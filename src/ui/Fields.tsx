@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useI18n } from "../i18n";
 export function Field({
   label,
   children,
@@ -10,11 +11,12 @@ export function Field({
   wide?: boolean;
   hint?: string;
 }) {
+  const { t } = useI18n();
   return (
     <label className={`field ${wide ? "wide" : ""}`}>
-      <span>{label}</span>
+      <span>{t(label)}</span>
       {children}
-      {hint && <small>{hint}</small>}
+      {hint && <small>{t(hint)}</small>}
     </label>
   );
 }
@@ -23,12 +25,16 @@ export function Select<T extends string | number>({
   options,
   onChange,
   disabled = false,
+  translateOptions = true,
 }: {
   value: T;
   options: readonly (readonly [T, string])[];
   onChange: (v: T) => void;
   disabled?: boolean;
+  /** Disable for option labels sourced from user card/project data. */
+  translateOptions?: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <select
       value={value}
@@ -43,7 +49,7 @@ export function Select<T extends string | number>({
     >
       {options.map(([v, l]) => (
         <option key={v} value={v}>
-          {l}
+          {translateOptions ? t(l) : l}
         </option>
       ))}
     </select>

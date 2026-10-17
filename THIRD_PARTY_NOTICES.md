@@ -24,4 +24,6 @@ The optional reference-sync command downloads or copies the following upstream s
 - [mycard/ygopro-database](https://github.com/mycard/ygopro-database): multilingual card information. No general data/asset license was present in the inspected source; do not assume the application MIT license covers this material.
 - [ygopro-scripting-workflow](https://code.moenext.com/nanahira/ygopro-scripting-workflow): MIT; consulted as development reference for script conventions, CDB tooling, and validation boundaries. No runtime dependence on its checkout or CLI.
 
+The bundled `src/domain/engine-constants.json` catalogs Lua interface names and numeric values from the synced `constant.lua`, with per-entry source locations; it contains no upstream script bodies. `engine-capabilities.ts` separately records the Koishi extension interface numbers and their defining source. `scripts/sync-capabilities.mjs` regenerates this catalog from an explicitly synced reference cache. Upstream source licenses remain those stated above.
+
 Game titles, card texts, images, logos and other game material belong to their respective rights holders. User-created content and generated Lua are not automatically relicensed by this notice. When distributing copied or adapted upstream scripts/resources, retain applicable upstream notices and licenses.

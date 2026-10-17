@@ -1,3 +1,4 @@
+import { useI18n, UI_LANGUAGES } from "./i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowDownToLine,
@@ -61,6 +62,7 @@ const errorMessage = (error: unknown) =>
   error instanceof Error ? error.message : String(error);
 
 export default function App() {
+  const { t, language, setLanguage } = useI18n();
   const [project, setProject] = useState<CardProject>(() => createProject());
   const [selected, setSelected] = useState("");
   const [ready, setReady] = useState(false);
@@ -249,7 +251,13 @@ export default function App() {
         return c;
       const result = matchEffects(c, project);
       report.push(
-        `${c.name}：识别到 ${result.effects.length} 块效果。${result.unmatched.length ? "未匹配：" + result.unmatched.join(" / ") : "请逐卡核对费用、时机与次数限制。"}`,
+        t("{0}：识别到 {1} 块效果。{2}", {
+          0: c.name,
+          1: result.effects.length,
+          2: result.unmatched.length
+            ? t("未匹配：{0}", { 0: result.unmatched.join(" / ") })
+            : t("请逐卡核对费用、时机与次数限制。"),
+        }),
       );
       if (!result.effects.length) return c;
       changed++;
@@ -356,7 +364,7 @@ export default function App() {
     return (
       <div className="loading-screen">
         <Leaf size={32} />
-        <span>正在打开萱草工坊…</span>
+        <span>{t("正在打开萱草工坊…")}</span>
       </div>
     );
   return (
@@ -367,7 +375,8 @@ export default function App() {
             <Leaf size={25} />
           </span>
           <span>
-            萱草<small>DAY LILIES</small>
+            {t("萱草")}
+            <small>DAY LILIES</small>
           </span>
         </a>
         <span className="topbar-divider" />
@@ -377,19 +386,32 @@ export default function App() {
         </button>
         <span className="save-state">
           <span className={saved.includes("失败") ? "dot error-dot" : "dot"} />
-          {saved}
+          {t(saved)}
         </span>
         <div className="spacer" />
+        <select
+          className="ui-language-select"
+          aria-label={t("界面语言")}
+          title={t("界面语言")}
+          value={language}
+          onChange={(e) => setLanguage(e.target.value as typeof language)}
+        >
+          {UI_LANGUAGES.map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
         <button
           className="button ghost"
           onClick={() => inputRef.current?.click()}
         >
           <Upload size={16} />
-          <span>导入</span>
+          <span>{t("导入")}</span>
         </button>
         <button className="button ghost" onClick={() => setDialog("settings")}>
           <Settings2 size={17} />
-          <span>设置</span>
+          <span>{t("设置")}</span>
         </button>
         <button
           className="button primary"
@@ -399,7 +421,7 @@ export default function App() {
           }}
         >
           <Download size={16} />
-          <span>导出卡包</span>
+          <span>{t("导出卡包")}</span>
         </button>
       </header>
       <input
@@ -414,15 +436,15 @@ export default function App() {
         <aside className="sidebar">
           <div className="sidebar-heading">
             <div>
-              <div className="eyebrow">YOUR COLLECTION</div>
+              <div className="eyebrow">{t("YOUR COLLECTION")}</div>
               <h2>
-                卡片库{" "}
+                {t("卡片库")}{" "}
                 <span>{project.cards.length.toString().padStart(2, "0")}</span>
               </h2>
             </div>
             <button
               className="icon-button add-card"
-              aria-label="新建卡片"
+              aria-label={t("新建卡片")}
               onClick={addCard}
             >
               <Plus size={20} />
@@ -431,9 +453,9 @@ export default function App() {
           <div className="search-input">
             <Search size={16} />
             <input
-              aria-label="筛选卡片"
+              aria-label={t("筛选卡片")}
               value={filter}
-              placeholder="搜索卡名或卡号"
+              placeholder={t("搜索卡名或卡号")}
               onChange={(e) => setFilter(e.target.value)}
             />
           </div>
@@ -451,15 +473,15 @@ export default function App() {
                   {c.art ? <img src={c.art} alt="" /> : <Leaf size={18} />}
                 </div>
                 <div className="card-list-copy">
-                  <strong>{c.name || "未命名卡片"}</strong>
+                  <strong>{c.name || t("未命名卡片")}</strong>
                   <span>
-                    {c.code || "等待分配卡号"} ·{" "}
-                    {KINDS.find(([k]) => k === c.kind)?.[1]}
+                    {c.code || t("等待分配卡号")} ·{" "}
+                    {t(KINDS.find(([k]) => k === c.kind)?.[1] || "")}
                   </span>
                 </div>
                 <span
                   className={`status-dot ${statusFor(c)}`}
-                  title={statusFor(c) === "ready" ? "可导出" : "需要检查"}
+                  title={statusFor(c) === "ready" ? t("可导出") : t("需要检查")}
                 />
               </button>
             ))}
@@ -467,17 +489,17 @@ export default function App() {
           {!project.cards.length && (
             <button className="empty-library" onClick={addCard}>
               <Plus size={28} />
-              <span>创建第一张卡片</span>
+              <span>{t("创建第一张卡片")}</span>
             </button>
           )}
           <div className="sidebar-bottom">
             <button className="button secondary full" onClick={addCard}>
               <Plus size={16} />
-              新建卡片
+              {t("新建卡片")}
             </button>
             <button className="help-link" onClick={() => setDialog("help")}>
               <CircleHelp size={15} />
-              第一次使用？看看工作流
+              {t("第一次使用？看看工作流")}
               <ArrowRight size={14} />
             </button>
           </div>
@@ -487,14 +509,15 @@ export default function App() {
             <>
               <div className="editor-heading">
                 <div className="breadcrumb">
-                  卡片工坊 <span>/</span>{" "}
-                  {KINDS.find(([k]) => k === card.kind)?.[1]}
+                  {t("卡片工坊")}
+                  <span>/</span>{" "}
+                  {t(KINDS.find(([k]) => k === card.kind)?.[1] || "")}
                 </div>
                 <div className="title-row">
-                  <h1>{card.name || "未命名卡片"}</h1>
+                  <h1>{card.name || t("未命名卡片")}</h1>
                   <button
                     className="icon-button"
-                    aria-label="复制卡片"
+                    aria-label={t("复制卡片")}
                     onClick={() => {
                       const copy = {
                         ...structuredClone(card),
@@ -514,9 +537,11 @@ export default function App() {
                   </button>
                   <button
                     className="icon-button danger"
-                    aria-label="删除当前卡片"
+                    aria-label={t("删除当前卡片")}
                     onClick={() => {
-                      if (window.confirm(`删除「${card.name}」？`)) {
+                      if (
+                        window.confirm(t("删除「{0}」？", { "0": card.name }))
+                      ) {
                         updateProject({
                           cards: project.cards.filter(
                             (c) => c.uid !== card.uid,
@@ -529,7 +554,7 @@ export default function App() {
                     <Trash2 size={17} />
                   </button>
                 </div>
-                <p>从一个想法，到可以上场的卡片。</p>
+                <p>{t("从一个想法，到可以上场的卡片。")}</p>
               </div>
               <nav className="editor-tabs">
                 {(
@@ -546,7 +571,7 @@ export default function App() {
                     onClick={() => setTab(key)}
                   >
                     <Icon size={16} />
-                    {label}
+                    {t(label)}
                     {key === "effects" && !!card.effects.length && (
                       <span>{card.effects.length}</span>
                     )}
@@ -566,22 +591,23 @@ export default function App() {
                   <>
                     <div className="mode-banner">
                       <div>
-                        <strong>把效果拆成可以核对的步骤</strong>
-                        <p>先试试匹配原文，再补全每块效果的参数。</p>
+                        <strong>{t("把效果拆成可以核对的步骤")}</strong>
+                        <p>{t("先试试匹配原文，再补全每块效果的参数。")}</p>
                       </div>
                       <button
                         className="button secondary"
                         onClick={() => setMatched(matchEffects(card, project))}
                       >
                         <WandSparkles size={16} />
-                        匹配文本
+                        {t("匹配文本")}
                       </button>
                     </div>
                     {card.scriptMode === "custom" && (
                       <div className="notice warning">
                         <p>
-                          当前导出使用完整
-                          Lua。这里的积木仍保留；切回积木模式后才会参与生成。
+                          {t(
+                            "当前导出使用完整 Lua。这里的积木仍保留；切回积木模式后才会参与生成。",
+                          )}
                         </p>
                         <button
                           className="text-button"
@@ -592,7 +618,7 @@ export default function App() {
                             })
                           }
                         >
-                          切回积木模式
+                          {t("切回积木模式")}
                         </button>
                       </div>
                     )}
@@ -609,13 +635,15 @@ export default function App() {
                       <div>
                         <strong>
                           {card.scriptMode === "blocks"
-                            ? "由效果积木生成"
-                            : "完整 Lua 模式"}
+                            ? t("由效果积木生成")
+                            : t("完整 Lua 模式")}
                         </strong>
                         <p>
                           {card.scriptMode === "blocks"
-                            ? "调整积木后脚本自动更新。"
-                            : "你可以自由编辑；更改卡号后也请更新脚本中的标识。"}
+                            ? t("调整积木后脚本自动更新。")
+                            : t(
+                                "你可以自由编辑；更改卡号后也请更新脚本中的标识。",
+                              )}
                         </p>
                       </div>
                       <button
@@ -640,23 +668,26 @@ export default function App() {
                       >
                         {card.scriptMode === "blocks"
                           ? card.customLua.trim()
-                            ? "恢复已保存的 Lua"
-                            : "转为完整 Lua"
-                          : "切回积木模式"}
+                            ? t("恢复已保存的 Lua")
+                            : t("转为完整 Lua")
+                          : t("切回积木模式")}
                       </button>
                     </div>
                     {card.scriptMode === "blocks" && card.customLua.trim() && (
                       <div className="notice">
                         <p>
-                          已有手写 / BYOK
-                          脚本保留在工程中。可以恢复旧稿，也可以明确用当前积木生成的新代码替换。
+                          {t(
+                            "已有手写 / BYOK 脚本保留在工程中。可以恢复旧稿，也可以明确用当前积木生成的新代码替换。",
+                          )}
                         </p>
                         <button
                           className="text-button"
                           onClick={() => {
                             if (
                               window.confirm(
-                                "用当前积木生成的代码覆盖此前保存的完整 Lua 及提示字符串？建议先备份工程。",
+                                t(
+                                  "用当前积木生成的代码覆盖此前保存的完整 Lua 及提示字符串？建议先备份工程。",
+                                ),
                               )
                             )
                               updateCard({
@@ -667,12 +698,12 @@ export default function App() {
                               });
                           }}
                         >
-                          用积木覆盖旧稿
+                          {t("用积木覆盖旧稿")}
                         </button>
                       </div>
                     )}
                     <div className="code-caption">
-                      <span>c{card.code || "卡号"}.lua</span>
+                      <span>c{card.code || t("卡号")}.lua</span>
                       <button
                         className="text-button"
                         onClick={() => {
@@ -684,12 +715,12 @@ export default function App() {
                           );
                         }}
                       >
-                        下载脚本
+                        {t("下载脚本")}
                       </button>
                     </div>
                     <textarea
                       className="code-editor"
-                      aria-label="Lua 脚本"
+                      aria-label={t("Lua 脚本")}
                       spellCheck={false}
                       readOnly={card.scriptMode === "blocks"}
                       value={
@@ -730,11 +761,13 @@ export default function App() {
                           })
                         }
                       >
-                        已核对完整脚本
+                        {t("已核对完整脚本")}
                       </button>
                     )}
                     <p className="field-help">
-                      检查覆盖静态语法和基础数据。效果裁定与运行结果，请在本地客户端中确认。
+                      {t(
+                        "检查覆盖静态语法和基础数据。效果裁定与运行结果，请在本地客户端中确认。",
+                      )}
                     </p>
                   </>
                 )}
@@ -762,33 +795,33 @@ export default function App() {
           ) : (
             <div className="empty-workspace">
               <Leaf size={46} />
-              <h1>下一套系统，从这里开始。</h1>
-              <p>创建卡片，或导入现有制卡器的文件。</p>
+              <h1>{t("下一套系统，从这里开始。")}</h1>
+              <p>{t("创建卡片，或导入现有制卡器的文件。")}</p>
               <div className="button-row">
                 <button className="button primary" onClick={addCard}>
                   <Plus size={16} />
-                  新建卡片
+                  {t("新建卡片")}
                 </button>
                 <button
                   className="button secondary"
                   onClick={() => inputRef.current?.click()}
                 >
                   <Upload size={16} />
-                  导入文件
+                  {t("导入文件")}
                 </button>
               </div>
               <button
                 className="text-button"
                 onClick={() => activate(demoProject())}
               >
-                打开三张示例卡
+                {t("打开三张示例卡")}
               </button>
             </div>
           )}
         </main>
         <aside className="preview-panel">
           <div className="preview-heading">
-            <span className="eyebrow">LIVE PREVIEW</span>
+            <span className="eyebrow">{t("LIVE PREVIEW")}</span>
             <span className="small-badge">
               {project.target === "ygopro" ? "YGOPro" : "KoishiPro"}
             </span>
@@ -798,15 +831,15 @@ export default function App() {
               <Preview card={card} />
               <div className="preview-caption">
                 <strong>{card.name}</strong>
-                <span>{card.code || "尚未分配卡号"}</span>
+                <span>{card.code || t("尚未分配卡号")}</span>
               </div>
               <div className="checks-panel">
                 <div className="checks-title">
-                  <h3>制作检查</h3>
+                  <h3>{t("制作检查")}</h3>
                   <span>
                     {cardIssues.length
-                      ? `${cardIssues.length} 项待确认`
-                      : "基础检查通过"}
+                      ? t("{0} 项待确认", { 0: cardIssues.length })
+                      : t("基础检查通过")}
                   </span>
                 </div>
                 {cardIssues.length ? (
@@ -814,28 +847,28 @@ export default function App() {
                     {cardIssues.map((d, i) => (
                       <li key={i} className={d.severity}>
                         <span className="status-dot" />
-                        {d.message}
+                        {t(d.message)}
                       </li>
                     ))}
                   </ul>
                 ) : (
                   <div className="all-good">
                     <CheckCircle2 size={18} />
-                    <p>可以生成扩展包。导出后请在客户端测试效果。</p>
+                    <p>{t("可以生成扩展包。导出后请在客户端测试效果。")}</p>
                   </div>
                 )}
                 <div className="export-contents">
                   <span>
                     <Check size={13} />
-                    CDB 卡片数据
+                    {t("CDB 卡片数据")}
                   </span>
                   <span>
                     <Check size={13} />
-                    完整卡图
+                    {t("完整卡图")}
                   </span>
                   <span>
                     <Check size={13} />
-                    Lua 效果脚本
+                    {t("Lua 效果脚本")}
                   </span>
                 </div>
               </div>
@@ -846,17 +879,18 @@ export default function App() {
             </div>
           )}
           <div className="quiet-note">
-            让灵感有形，让效果可运行。<span>YOUR IDEAS, READY TO PLAY.</span>
+            {t("让灵感有形，让效果可运行。")}
+            <span>{t("YOUR IDEAS, READY TO PLAY.")}</span>
           </div>
         </aside>
       </div>
       {notice && (
         <div className="toast">
           <CheckCircle2 size={17} />
-          {notice}
+          {t(notice)}
           <button
             className="icon-button"
-            aria-label="关闭提示"
+            aria-label={t("关闭提示")}
             onClick={() => setNotice("")}
           >
             <X size={15} />
@@ -866,29 +900,34 @@ export default function App() {
       {busy && (
         <div className="busy-overlay">
           <LoaderCircle className="spin" size={24} />
-          <span>{busy}</span>
+          <span>{t(busy)}</span>
         </div>
       )}
       {error && (
-        <Modal title="需要处理的问题" onClose={() => setError("")}>
-          <p className="error-message">{error}</p>
+        <Modal title={t("需要处理的问题")} onClose={() => setError("")}>
+          <p className="error-message">{t(error)}</p>
           <button className="button primary" onClick={() => setError("")}>
-            知道了
+            {t("知道了")}
           </button>
         </Modal>
       )}
       {matched && (
-        <Modal title="文本匹配结果" onClose={() => setMatched(null)} wide>
+        <Modal title={t("文本匹配结果")} onClose={() => setMatched(null)} wide>
           <p>
-            识别到 {matched.effects.length}{" "}
-            块效果。应用后仍需核对原文，未识别内容不会自动获得脚本。
+            {t(
+              "识别到 {0} 块效果。应用后仍需核对原文，未识别内容不会自动获得脚本。",
+              { 0: matched.effects.length },
+            )}
           </p>
           {matched.effects.map((e, i) => (
             <div className="match-result" key={e.uid}>
               <strong>
                 {i + 1}.{" "}
                 {e.description ||
-                  TEMPLATES.find((t) => t.id === e.template)?.label ||
+                  t(
+                    TEMPLATES.find((template) => template.id === e.template)
+                      ?.label || "",
+                  ) ||
                   e.template}
               </strong>
               <p>{e.sourceText}</p>
@@ -896,12 +935,12 @@ export default function App() {
           ))}
           {matched.warnings.map((w, i) => (
             <p className="notice warning" key={i}>
-              {w}
+              {t(w)}
             </p>
           ))}
           {!!matched.unmatched.length && (
             <div className="unmatched">
-              <h3>以下内容需要手工组装或 BYOK</h3>
+              <h3>{t("以下内容需要手工组装或 BYOK")}</h3>
               {matched.unmatched.map((t, i) => (
                 <p key={i}>{t}</p>
               ))}
@@ -922,40 +961,44 @@ export default function App() {
                 setTab("effects");
               }}
             >
-              替换为这些效果积木
+              {t("替换为这些效果积木")}
             </button>
             <button
               className="button secondary"
               onClick={() => setMatched(null)}
             >
-              保留当前配置
+              {t("保留当前配置")}
             </button>
           </div>
         </Modal>
       )}
       {importWarnings && (
         <Modal
-          title="处理结果 · 请核对"
+          title={t("处理结果 · 请核对")}
           onClose={() => setImportWarnings(null)}
         >
           <ul className="warning-list">
             {importWarnings.map((w, i) => (
-              <li key={i}>{w}</li>
+              <li key={i}>{t(w)}</li>
             ))}
           </ul>
           <button
             className="button primary"
             onClick={() => setImportWarnings(null)}
           >
-            继续编辑
+            {t("继续编辑")}
           </button>
         </Modal>
       )}
       {dialog === "settings" && (
-        <Modal title="卡包与工作台设置" onClose={() => setDialog(null)} wide>
+        <Modal
+          title={t("卡包与工作台设置")}
+          onClose={() => setDialog(null)}
+          wide
+        >
           <div className="settings-grid">
             <section>
-              <h3>卡包</h3>
+              <h3>{t("卡包")}</h3>
               <Field label="卡包名称">
                 <input
                   value={project.name}
@@ -990,16 +1033,16 @@ export default function App() {
                 />
               </Field>
               <button className="button secondary full" onClick={assignCodes}>
-                给未编号的卡片分配卡号
+                {t("给未编号的卡片分配卡号")}
               </button>
               <button className="text-button" onClick={matchUnconfiguredCards}>
-                批量匹配尚未配置的卡片
+                {t("批量匹配尚未配置的卡片")}
               </button>
-              <h3>系列代码</h3>
+              <h3>{t("系列代码")}</h3>
               {project.archetypes.map((a, i) => (
                 <div className="archetype-row" key={i}>
                   <input
-                    aria-label="系列名称"
+                    aria-label={t("系列名称")}
                     value={a.name}
                     onChange={(e) =>
                       updateProject({
@@ -1010,7 +1053,7 @@ export default function App() {
                     }
                   />
                   <input
-                    aria-label="系列代码"
+                    aria-label={t("系列代码")}
                     key={i + ":" + a.code}
                     defaultValue={"0x" + a.code.toString(16)}
                     onBlur={(e) => {
@@ -1026,7 +1069,7 @@ export default function App() {
                   />
                   <button
                     className="icon-button"
-                    aria-label="删除系列名称"
+                    aria-label={t("删除系列名称")}
                     onClick={() =>
                       updateProject({
                         archetypes: project.archetypes.filter(
@@ -1053,14 +1096,25 @@ export default function App() {
                   })
                 }
               >
-                ＋ 添加系列
+                {t("＋ 添加系列")}
               </button>
               <p className="field-help">
-                修改系列代码后，请同步调整卡片所属系列与积木筛选条件。
+                {t("修改系列代码后，请同步调整卡片所属系列与积木筛选条件。")}
               </p>
             </section>
             <section>
-              <h3>存储位置</h3>
+              <Field
+                label="界面语言"
+                hint="仅改变工作台界面；卡面语言可在每张卡的信息中独立选择。"
+              >
+                <Select
+                  value={language}
+                  options={UI_LANGUAGES}
+                  translateOptions={false}
+                  onChange={setLanguage}
+                />
+              </Field>
+              <h3>{t("存储位置")}</h3>
               <Field label="自动保存到">
                 <Select
                   value={mode}
@@ -1072,14 +1126,15 @@ export default function App() {
                 />
               </Field>
               <p className="field-help">
-                切换时会复制当前卡包。浏览器清理数据可能删除本地卡包，请定期导出
-                JSON 备份。服务端保存适用于你自己的应用实例。
+                {t(
+                  "切换时会复制当前卡包。浏览器清理数据可能删除本地卡包，请定期导出 JSON 备份。服务端保存适用于你自己的应用实例。",
+                )}
               </p>
               <button className="button secondary" onClick={backup}>
                 <Save size={16} />
-                导出卡包备份
+                {t("导出卡包备份")}
               </button>
-              <h3>自己的模型 · BYOK</h3>
+              <h3>{t("自己的模型 · BYOK")}</h3>
               <Field label="OpenAI 兼容 API 地址">
                 <input
                   placeholder="https://example.com/v1"
@@ -1091,7 +1146,7 @@ export default function App() {
               </Field>
               <Field label="模型名称">
                 <input
-                  placeholder="填写服务商提供的 model ID"
+                  placeholder={t("填写服务商提供的 model ID")}
                   value={byok.model}
                   onChange={(e) => setByok({ ...byok, model: e.target.value })}
                 />
@@ -1105,8 +1160,9 @@ export default function App() {
                 />
               </Field>
               <p className="field-help">
-                Key
-                不会写入浏览器存储、卡包或服务器日志。端点和模型名称可以保存。自托管私网端点需要在服务端允许相应主机。
+                {t(
+                  "Key 不会写入浏览器存储、卡包或服务器日志。端点和模型名称可以保存。自托管私网端点需要在服务端允许相应主机。",
+                )}
               </p>
               <button
                 className="button secondary"
@@ -1121,31 +1177,33 @@ export default function App() {
                   setNotice("已记住端点和模型；API Key 仅留在本页。");
                 }}
               >
-                记住端点与模型
+                {t("记住端点与模型")}
               </button>
             </section>
           </div>
         </Modal>
       )}
       {dialog === "projects" && (
-        <Modal title="我的卡包" onClose={() => setDialog(null)}>
+        <Modal title={t("我的卡包")} onClose={() => setDialog(null)}>
           <div className="button-row">
             <button
               className="button primary"
               onClick={() => activate(createProject())}
             >
               <FilePlus2 size={16} />
-              空白卡包
+              {t("空白卡包")}
             </button>
             <button
               className="button secondary"
               onClick={() => activate(demoProject())}
             >
-              载入示例
+              {t("载入示例")}
             </button>
           </div>
           <p className="field-help">
-            当前查看：{mode === "local" ? "此浏览器" : "服务端"}保存的卡包。
+            {t("当前查看：{0}保存的卡包。", {
+              0: t(mode === "local" ? "此浏览器" : "服务端"),
+            })}
           </p>
           <div className="project-list">
             {projects.map((p) => (
@@ -1165,17 +1223,21 @@ export default function App() {
                   <span>
                     <strong>{p.name}</strong>
                     <small>
-                      {p.cardCount} 张卡 ·{" "}
-                      {new Date(p.updatedAt).toLocaleDateString()}
+                      {t("{0} 张卡", { 0: p.cardCount })} ·{" "}
+                      {new Date(p.updatedAt).toLocaleDateString(language)}
                     </small>
                   </span>
                 </button>
                 <button
                   className="icon-button danger"
-                  aria-label={`删除卡包 ${p.name}`}
+                  aria-label={t("删除卡包 {0}", { "0": p.name })}
                   disabled={p.id === project.id}
                   onClick={async () => {
-                    if (window.confirm(`删除已保存的「${p.name}」？`)) {
+                    if (
+                      window.confirm(
+                        t("删除已保存的「{0}」？", { "0": p.name }),
+                      )
+                    ) {
                       try {
                         await removeProject(p.id, mode);
                         setProjects(await listProjects(mode));
@@ -1193,35 +1255,38 @@ export default function App() {
         </Modal>
       )}
       {dialog === "export" && (
-        <Modal title="导出完整扩展包" onClose={() => setDialog(null)}>
+        <Modal title={t("导出完整扩展包")} onClose={() => setDialog(null)}>
           <div className="export-summary">
             <ArrowDownToLine size={26} />
             <div>
               <strong>{project.name}</strong>
               <span>
-                {project.cards.length} 张卡片 ·{" "}
+                {t("{0} 张卡", { 0: project.cards.length })} ·{" "}
                 {project.target === "ygopro" ? "YGOPro" : "KoishiPro"}
               </span>
             </div>
           </div>
           <pre className="file-tree">
-            {`expansions/\n  ${project.name || "cards"}.cdb\n  pics/卡号.png\n  script/c卡号.lua\n  strings.conf（自定义系列）\nexport-report.json\nREADME.txt`}
+            {t(
+              "expansions/\n  {0}.cdb\n  pics/卡号.png\n  script/c卡号.lua\n  strings.conf（自定义系列）\nexport-report.json\nREADME.txt",
+              { "0": project.name || "cards" },
+            )}
           </pre>
           <p>
-            将 expansions
-            的内容合并到客户端对应目录中，进入本地决斗测试。自定义系列名称可能需要合并
-            strings.conf 并重启客户端。
+            {t(
+              "将 expansions 的内容合并到客户端对应目录中，进入本地决斗测试。自定义系列名称可能需要合并 strings.conf 并重启客户端。",
+            )}
           </p>
           {diagnostics.length > 0 && (
             <ul className="export-diagnostics">
               {diagnostics.map((d, i) => (
                 <li className={d.severity} key={i}>
                   <strong>
-                    {d.severity === "error" ? "错误" : "待确认"} ·{" "}
+                    {d.severity === "error" ? t("错误") : t("待确认")} ·{" "}
                     {project.cards.find((c) => c.uid === d.cardUid)?.name ||
-                      "卡包"}
+                      t("卡包")}
                   </strong>
-                  <span>{d.message}</span>
+                  <span>{t(d.message)}</span>
                 </li>
               ))}
             </ul>
@@ -1233,11 +1298,11 @@ export default function App() {
                 checked={draft}
                 onChange={(e) => setDraft(e.target.checked)}
               />
-              我已阅读这些问题，导出草稿供本地测试
+              {t("我已阅读这些问题，导出草稿供本地测试")}
             </label>
           )}
           {!project.cards.length && (
-            <p className="error-message">请先加入卡片。</p>
+            <p className="error-message">{t("请先加入卡片。")}</p>
           )}
           <div className="button-row">
             <button
@@ -1250,53 +1315,60 @@ export default function App() {
               onClick={() => void exportPack()}
             >
               <Download size={16} />
-              下载 ZIP 扩展包
+              {t("下载 ZIP 扩展包")}
             </button>
             <button className="button secondary" onClick={backup}>
-              同时备份工程
+              {t("同时备份工程")}
             </button>
           </div>
         </Modal>
       )}
       {dialog === "help" && (
-        <Modal title="从卡片设计到本地对局" onClose={() => setDialog(null)}>
+        <Modal
+          title={t("从卡片设计到本地对局")}
+          onClose={() => setDialog(null)}
+        >
           <ol className="workflow-steps">
             <li>
-              <strong>建立一套卡</strong>
+              <strong>{t("建立一套卡")}</strong>
               <p>
-                新建或导入 MSE-SET、YGO Carder / yugioh-card
-                JSON。先在设置里确认自己的卡号区间和系列代码。
+                {t(
+                  "新建或导入 MSE-SET、YGO Carder / yugioh-card JSON。先在设置里确认自己的卡号区间和系列代码。",
+                )}
               </p>
             </li>
             <li>
-              <strong>确认卡面</strong>
+              <strong>{t("确认卡面")}</strong>
               <p>
-                正文用于效果设计；MSE
-                中文注释保留为参考。上传中间图后，系统会用自带卡模生成完整卡图。
+                {t(
+                  "正文用于效果设计；MSE 中文注释保留为参考。上传中间图后，系统会用自带卡模生成完整卡图。",
+                )}
               </p>
             </li>
             <li>
-              <strong>完成效果</strong>
+              <strong>{t("完成效果")}</strong>
               <p>
-                点击「匹配文本」得到候选积木，再手动核对和调整。无法表达的设计可以使用
-                BYOK 或编辑完整 Lua。
+                {t(
+                  "点击「匹配文本」得到候选积木，再手动核对和调整。无法表达的设计可以使用 BYOK 或编辑完整 Lua。",
+                )}
               </p>
             </li>
             <li>
-              <strong>导出并测试</strong>
+              <strong>{t("导出并测试")}</strong>
               <p>
-                查看制作检查，下载包含 CDB、图片和脚本的 ZIP。在本地 YGOPro /
-                KoishiPro 验证裁定与效果。
+                {t(
+                  "查看制作检查，下载包含 CDB、图片和脚本的 ZIP。在本地 YGOPro / KoishiPro 验证裁定与效果。",
+                )}
               </p>
             </li>
           </ol>
           <p className="field-help">
-            当前模板适合常见 OCG
-            式效果。复杂连锁、替代费用、无效、持续关系和复合选择仍应使用完整
-            Lua。
+            {t(
+              "当前模板适合常见 OCG 式效果。复杂连锁、替代费用、无效、持续关系和复合选择仍应使用完整 Lua。",
+            )}
           </p>
           <button className="button primary" onClick={() => setDialog(null)}>
-            开始制作
+            {t("开始制作")}
           </button>
         </Modal>
       )}

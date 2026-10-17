@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n";
 import { useState } from "react";
 import { BookOpen, Check, Search, Sparkles } from "lucide-react";
 import type {
@@ -22,6 +23,7 @@ export default function AssistantPanel({
   onApply: (lua: string, strings: string[]) => void;
   onError: (message: string) => void;
 }) {
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ReferenceCard[]>([]);
   const [refs, setRefs] = useState<ReferenceCard[]>([]);
@@ -41,7 +43,7 @@ export default function AssistantPanel({
       );
       setResults(d.cards);
     } catch (e) {
-      onError(String(e));
+      onError(e instanceof Error ? e.message : String(e));
     } finally {
       setBusy(false);
     }
@@ -53,7 +55,7 @@ export default function AssistantPanel({
       );
       setInspected(d);
     } catch (e) {
-      onError(String(e));
+      onError(e instanceof Error ? e.message : String(e));
     }
   }
   async function generate() {
@@ -83,14 +85,15 @@ export default function AssistantPanel({
       <div className="notice">
         <BookOpen size={18} />
         <p>
-          参考已有 OCG 卡片的实现，为模型提供具体依据。参考库可用{" "}
-          <code>npm run refs:sync</code> 更新。
+          {t("参考已有 OCG 卡片的实现，为模型提供具体依据。参考库可用")}{" "}
+          <code>npm run refs:sync</code>
+          {t("更新。")}
         </p>
       </div>
       <div className="search-row">
         <input
-          aria-label="搜索参考卡"
-          placeholder="卡名、卡号或效果关键词"
+          aria-label={t("搜索参考卡")}
+          placeholder={t("卡名、卡号或效果关键词")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
@@ -103,7 +106,7 @@ export default function AssistantPanel({
           disabled={!query || busy}
         >
           <Search size={15} />
-          搜索
+          {t("搜索")}
         </button>
       </div>
       {results.length > 0 && (
@@ -119,7 +122,7 @@ export default function AssistantPanel({
               </button>
               <button
                 className="icon-button"
-                aria-label={`选择参考 ${r.name}`}
+                aria-label={t("选择参考 {0}", { "0": r.name })}
                 disabled={
                   refs.some((x) => x.code === r.code) || refs.length >= 5
                 }
@@ -155,7 +158,7 @@ export default function AssistantPanel({
           </summary>
           <p className="reference-text">{inspected.text}</p>
           <pre className="reference-code">
-            {inspected.script || "缓存中没有这张卡的脚本。"}
+            {inspected.script || t("缓存中没有这张卡的脚本。")}
           </pre>
         </details>
       )}
@@ -164,7 +167,9 @@ export default function AssistantPanel({
           rows={3}
           value={instruction}
           onChange={(e) => setInstruction(e.target.value)}
-          placeholder="例如：参照增援的筛选方式，改成昼庭系列；请保留墓地效果。"
+          placeholder={t(
+            "例如：参照增援的筛选方式，改成昼庭系列；请保留墓地效果。",
+          )}
         />
       </Field>
       <button
@@ -173,20 +178,21 @@ export default function AssistantPanel({
         onClick={() => void generate()}
       >
         <Sparkles size={16} />
-        {busy ? "处理中…" : "使用我的模型生成 Lua"}
+        {busy ? t("处理中…") : t("使用我的模型生成 Lua")}
       </button>
       {!settings.endpoint && (
         <p className="field-help">
-          先在右上角「设置」中填写 OpenAI 兼容端点和模型。
+          {t("先在右上角「设置」中填写 OpenAI 兼容端点和模型。")}
         </p>
       )}
       <p className="field-help">
-        只在点击生成时发送当前卡、卡包内卡名／卡号／卡文、系列信息及选中的参考。API
-        Key 仅保留在当前页面内存中。模型结果仍需自行核对和本地测试。
+        {t(
+          "只在点击生成时发送当前卡、卡包内卡名／卡号／卡文、系列信息及选中的参考。API Key 仅保留在当前页面内存中。模型结果仍需自行核对和本地测试。",
+        )}
       </p>
       {result && (
         <section className="generation-result">
-          <h3>待应用的脚本</h3>
+          <h3>{t("待应用的脚本")}</h3>
           <p>{result.notes}</p>
           <textarea
             className="code-editor"
@@ -207,10 +213,10 @@ export default function AssistantPanel({
             className="button primary"
             onClick={() => onApply(result.lua, result.strings)}
           >
-            应用为这张卡的完整 Lua
+            {t("应用为这张卡的完整 Lua")}
           </button>
           <p className="field-help">
-            应用后切换到完整 Lua 模式；原有效果积木仍保留，可以手动切回。
+            {t("应用后切换到完整 Lua 模式；原有效果积木仍保留，可以手动切回。")}
           </p>
         </section>
       )}
