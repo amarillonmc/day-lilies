@@ -96,6 +96,10 @@ export default function CardEditor({
                 reviewRequired: true,
                 procedure: {
                   ...card.procedure,
+                  contactFusion:
+                    kind === "fusion"
+                      ? card.procedure.contactFusion
+                      : undefined,
                   mode: ["fusion", "synchro", "xyz", "link"].includes(kind)
                     ? (kind as Card["procedure"]["mode"])
                     : "none",

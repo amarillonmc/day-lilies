@@ -2,11 +2,15 @@ import type {
   Card,
   CardFilter,
   CardProject,
+  ContactFusionProcedure,
   FusionMaterialSlot,
   SummonProcedure,
   SummoningEffect,
 } from "../domain/model";
-import { fusionMaterialSlots } from "../domain/summon-procedures";
+import {
+  defaultContactFusion,
+  fusionMaterialSlots,
+} from "../domain/summon-procedures";
 import { useI18n } from "../i18n";
 import { EffectFilterEditor } from "./EffectFilterEditor";
 import { Field, NumberInput, Select } from "./Fields";
@@ -81,7 +85,12 @@ export function SummonProcedureEditor({
                 )[card.kind],
               ],
             ]}
-            onChange={(mode) => update({ mode })}
+            onChange={(mode) =>
+              update({
+                mode,
+                contactFusion: mode === "fusion" ? p.contactFusion : undefined,
+              })
+            }
           />
         </Field>
         {p.mode !== "none" && p.mode !== "fusion" && (
@@ -307,9 +316,142 @@ export function SummonProcedureEditor({
           >
             {t("添加素材槽")}
           </button>
+          <div className="form-section">
+            <label className="check">
+              <input
+                type="checkbox"
+                checked={!!p.contactFusion}
+                onChange={(event) =>
+                  update({
+                    contactFusion: event.target.checked
+                      ? defaultContactFusion()
+                      : undefined,
+                  })
+                }
+              />
+              {t("启用接触融合手续")}
+            </label>
+            {p.contactFusion && (
+              <ContactFusionEditor
+                value={p.contactFusion}
+                onChange={(contactFusion) => update({ contactFusion })}
+              />
+            )}
+          </div>
         </>
       )}
     </details>
+  );
+}
+
+function ContactFusionEditor({
+  value,
+  onChange,
+}: {
+  value: ContactFusionProcedure;
+  onChange: (value: ContactFusionProcedure) => void;
+}) {
+  const { t } = useI18n();
+  const update = (patch: Partial<ContactFusionProcedure>) =>
+    onChange({ ...value, ...patch });
+  return (
+    <div className="contact-fusion-editor">
+      <p className="field-help">
+        {t(
+          "接触融合复用上方素材槽，不入连锁；属于规则特殊召唤，不视为融合召唤。兼容 YGOPRO 与 KoishiPRO。",
+        )}
+      </p>
+      <div className="form-grid">
+        <Field label="接触融合素材范围">
+          <Select
+            value={value.materialPlayers}
+            options={[
+              ["self", "仅自己的素材"],
+              ["opponent", "仅对方的素材"],
+              ["both", "双方的素材"],
+            ]}
+            onChange={(materialPlayers) =>
+              update({
+                materialPlayers,
+                ...(materialPlayers !== "self"
+                  ? { materialSource: "field", faceup: true }
+                  : {}),
+              })
+            }
+          />
+        </Field>
+        <Field label="接触融合素材来源">
+          <Select
+            value={value.materialSource}
+            options={
+              [
+                ["field", "怪兽区域"],
+                ...(value.materialPlayers === "self"
+                  ? [
+                      ["hand-field", "手牌与怪兽区域"],
+                      ...(value.materialAction !== "release"
+                        ? [
+                            ["field-grave", "怪兽区域与墓地"],
+                            ["hand-field-grave", "手牌、怪兽区域与墓地"],
+                          ]
+                        : []),
+                    ]
+                  : []),
+              ] as [ContactFusionProcedure["materialSource"], string][]
+            }
+            onChange={(materialSource) => update({ materialSource })}
+          />
+        </Field>
+        <Field label="接触融合素材处理">
+          <Select
+            value={value.materialAction}
+            options={[
+              ["to-deck", "作为费用洗回卡组／额外卡组"],
+              ["banish", "作为费用表侧除外"],
+              ["send-grave", "作为费用送去墓地"],
+              ["release", "为特殊召唤解放素材"],
+            ]}
+            onChange={(materialAction) =>
+              update({
+                materialAction,
+                ...(materialAction === "release" &&
+                value.materialSource.includes("grave")
+                  ? { materialSource: "field" }
+                  : {}),
+              })
+            }
+          />
+        </Field>
+        <Field
+          label="额外卡组召唤限制"
+          hint="仅约束从额外卡组召唤；完成正规手续后，仍可通过其他效果从墓地等区域特殊召唤。"
+        >
+          <Select
+            value={value.restriction}
+            options={[
+              ["contact-or-fusion", "接触手续或融合召唤"],
+              ["contact-only", "仅接触手续"],
+              ["none", "不添加额外限制"],
+            ]}
+            onChange={(restriction) => update({ restriction })}
+          />
+        </Field>
+      </div>
+      <label className="check">
+        <input
+          type="checkbox"
+          checked={value.faceup}
+          disabled={value.materialPlayers !== "self"}
+          onChange={(event) => update({ faceup: event.target.checked })}
+        />
+        {t("场上素材必须表侧表示")}
+      </label>
+      <p className="field-help">
+        {t(
+          "接触手续不允许融合素材代用；上方代用开关仅影响通常融合召唤。使用对方素材时，仅支持其表侧怪兽区域。",
+        )}
+      </p>
+    </div>
   );
 }
 
@@ -330,6 +472,11 @@ export function SummoningEffectEditor({
       <p className="field-help">
         {t(
           "通过效果进行正规融合或仪式召唤，支持通常的发动条件、费用与次数限制；兼容两种内核。",
+        )}
+      </p>
+      <p className="field-help">
+        {t(
+          "可作为复合效果中的一步；后续步骤与延迟追踪引用的是实际召唤成功的怪兽，不包含素材。",
         )}
       </p>
       <div className="form-grid">

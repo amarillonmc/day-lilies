@@ -91,9 +91,7 @@ const allCosts: [CostKind, string][] = [
 ];
 const actionTemplates = TEMPLATES.filter(
   (template) =>
-    !["self-summon", "sequence", "custom-effect", "summoning"].includes(
-      template.id,
-    ),
+    !["self-summon", "sequence", "custom-effect"].includes(template.id),
 );
 
 export default function EffectEditor({
@@ -442,14 +440,18 @@ export default function EffectEditor({
                             template.id as OperationAction,
                             template.label,
                           ])}
-                          onChange={(action) =>
+                          onChange={(action) => {
+                            const replacement = createOperation(action);
                             updateOperation(operationIndex, {
-                              ...createOperation(action),
+                              ...replacement,
                               uid: step.uid,
                               next: step.next,
-                              optional: step.optional,
-                            })
-                          }
+                              optional:
+                                replacement.selection === "target"
+                                  ? false
+                                  : step.optional,
+                            });
+                          }}
                         />
                       </Field>
                       <div className="spacer" />
@@ -563,7 +565,7 @@ export default function EffectEditor({
                 onChange={(summoning) => update(index, { summoning })}
               />
             )}
-            {!isCustom && !isProcedure && !isSummoning && (
+            {!isCustom && !isProcedure && (
               <TrackingEditor
                 block={effect}
                 onChange={(tracking) => update(index, { tracking })}

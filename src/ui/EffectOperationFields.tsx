@@ -10,6 +10,8 @@ import { useI18n } from "../i18n";
 import { Field, NumberInput, Select } from "./Fields";
 import { ZONES } from "./options";
 import { EffectFilterEditor } from "./EffectFilterEditor";
+import { SummoningEffectEditor } from "./SummonProcedureEditor";
+import { defaultSummoning } from "../domain/summon-procedures";
 
 export const EFFECT_ZONES: [Zone, string][] = [...ZONES, ["extra", "额外卡组"]];
 export const EFFECT_PLAYERS = [
@@ -47,6 +49,15 @@ export function EffectOperationFields({
   stepIndex?: number;
 }) {
   const { t } = useI18n();
+  if (action === "summoning")
+    return (
+      <SummoningEffectEditor
+        value={value.summoning || defaultSummoning()}
+        project={project}
+        onChange={(summoning) => onChange({ summoning })}
+      />
+    );
+  const isSpecialSummon = ["summon", "revive"].includes(action);
   const selection =
     "selection" in value
       ? value.selection
@@ -54,7 +65,7 @@ export function EffectOperationFields({
         ? "self"
         : undefined;
   const usesCards = !simple.has(action);
-  const hasPosition = action === "change-position";
+  const hasPosition = action === "change-position" || isSpecialSummon;
   const hasDuration =
     ["control", "disable", "declare-race", "declare-attribute"].includes(
       action,
@@ -62,15 +73,7 @@ export function EffectOperationFields({
     (sequence && action === "boost");
   const legacySingle =
     !sequence &&
-    [
-      "recover",
-      "destroy",
-      "bounce",
-      "banish",
-      "revive",
-      "summon",
-      "boost",
-    ].includes(action);
+    ["recover", "destroy", "bounce", "banish", "boost"].includes(action);
   const selections = (
     [
       ["target", "发动时取对象"],
@@ -88,8 +91,7 @@ export function EffectOperationFields({
         (mode === "previous" && firstStep) ||
         (mode === "result" && firstStep) ||
         (mode === "target" && action === "discard-hand") ||
-        (mode === "all" &&
-          ["summon", "revive", "control", "equip"].includes(action)) ||
+        (mode === "all" && ["control", "equip"].includes(action)) ||
         (mode === "self" && ["equip", "attach-material"].includes(action))
       ),
   );
@@ -98,7 +100,9 @@ export function EffectOperationFields({
     ...operations.flatMap((op, index): [string, string][] => {
       if (
         selection === "target-group"
-          ? op.selection !== "target" || simple.has(op.action)
+          ? op.selection !== "target" ||
+            simple.has(op.action) ||
+            op.action === "summoning"
           : index >= stepIndex
       )
         return [];
@@ -141,7 +145,17 @@ export function EffectOperationFields({
                   ? EFFECT_ZONES.filter(([zone]) =>
                       ["field", "monster", "spelltrap"].includes(zone),
                     )
-                  : EFFECT_ZONES;
+                  : isSpecialSummon
+                    ? EFFECT_ZONES.filter(([zone]) =>
+                        [
+                          "hand",
+                          "deck",
+                          "grave",
+                          "banished",
+                          "hand-grave",
+                        ].includes(zone),
+                      )
+                    : EFFECT_ZONES;
   return (
     <>
       <div className="form-grid">
@@ -213,11 +227,18 @@ export function EffectOperationFields({
         {!["negate-activation", "negate-effect", "damage", "heal"].includes(
           action,
         ) &&
-          !["self", "previous", "all", "target-group", "result"].includes(
-            selection || "",
-          ) && (
+          (isSpecialSummon
+            ? !["self", "all"].includes(selection || "")
+            : !["self", "previous", "all", "target-group", "result"].includes(
+                selection || "",
+              )) && (
             <Field
-              label="数量"
+              label={
+                isSpecialSummon &&
+                ["previous", "target-group", "result"].includes(selection || "")
+                  ? "特召数量上限"
+                  : "数量"
+              }
               hint={
                 legacySingle ? "单体处理；多张卡请使用复合效果。" : undefined
               }
@@ -226,12 +247,13 @@ export function EffectOperationFields({
                 value={value.amount}
                 min={1}
                 max={
-                  legacySingle ||
-                  ["summon", "revive", "control", "equip"].includes(action)
+                  legacySingle || ["control", "equip"].includes(action)
                     ? 1
-                    : !sequence && ["draw", "search", "mill"].includes(action)
-                      ? 10
-                      : 40
+                    : isSpecialSummon
+                      ? 5
+                      : !sequence && ["draw", "search", "mill"].includes(action)
+                        ? 10
+                        : 40
                 }
                 onChange={(amount) => onChange({ amount })}
               />
@@ -307,13 +329,22 @@ export function EffectOperationFields({
         {hasPosition && (
           <Field label="表示形式">
             <Select
-              value={value.position || "faceup-attack"}
+              value={value.position || (isSpecialSummon ? "" : "faceup-attack")}
               options={[
+                ...(isSpecialSummon
+                  ? ([["", "表侧表示（结算时选择）"]] as const)
+                  : []),
                 ["faceup-attack", "表侧攻击表示"],
                 ["faceup-defense", "表侧守备表示"],
                 ["facedown-defense", "里侧守备表示"],
               ]}
-              onChange={(position) => onChange({ position })}
+              onChange={(position) =>
+                onChange({
+                  position: position
+                    ? (position as OperationOptions["position"])
+                    : undefined,
+                })
+              }
             />
           </Field>
         )}
@@ -345,6 +376,24 @@ export function EffectOperationFields({
           </Field>
         )}
       </div>
+      {isSpecialSummon && (
+        <div className="effect-help">
+          <p>
+            {t(
+              selection === "all"
+                ? "同一次特殊召唤处理全部符合条件的怪兽（最多 5 只）；空位不足或受到一次只能特召一只的限制时，此步不处理。"
+                : "多只怪兽在同一次特殊召唤中出场；对象失效或可用空位减少时，仅处理仍合法且可容纳的怪兽。结果引用和延迟追踪只记录实际召唤成功的怪兽。",
+            )}
+          </p>
+          {selection !== "all" && (
+            <p>
+              {t(
+                "结算时若仍需同时特召多只，但受到一次只能特召一只的限制，此步不处理。",
+              )}
+            </p>
+          )}
+        </div>
+      )}
       {usesCards && (
         <EffectFilterEditor
           filter={value.filter}

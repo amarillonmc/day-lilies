@@ -53,13 +53,13 @@ export const TEMPLATES: {
   {
     id: "revive",
     label: "墓地对象苏生",
-    summary: "以墓地 1 只怪兽为对象，特殊召唤到自己场上。",
+    summary: "以墓地 1–5 只怪兽为对象，同时特殊召唤到自己场上。",
     source: source(83764718),
   },
   {
     id: "summon",
     label: "选择特殊召唤",
-    summary: "处理时从自己的手牌或墓地选 1 只怪兽，特殊召唤。",
+    summary: "处理时从自己的手牌或墓地选 1–5 只怪兽，同时特殊召唤。",
     source: source(88264978),
   },
   {

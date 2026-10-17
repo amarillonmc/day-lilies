@@ -1,4 +1,83 @@
 export const summonTranslations: Record<string, [string, string]> = {
+  "可作为复合效果中的一步；后续步骤与延迟追踪引用的是实际召唤成功的怪兽，不包含素材。":
+    [
+      "Can be used as a step in a compound effect. Later steps and delayed tracking reference the monsters successfully Summoned, excluding materials.",
+      "複合効果の１ステップとして使用できます。後続ステップと遅延追跡は、実際に召喚に成功したモンスターを参照し、素材は含みません。",
+    ],
+  启用接触融合手续: [
+    "Enable Contact Fusion procedure",
+    "コンタクト融合の手順を有効化",
+  ],
+  "接触融合复用上方素材槽，不入连锁；属于规则特殊召唤，不视为融合召唤。兼容 YGOPRO 与 KoishiPRO。":
+    [
+      "Contact Fusion uses the material slots above without starting a Chain. It is a Special Summoning procedure, not a Fusion Summon. Supported by YGOPRO and KoishiPRO.",
+      "上記の素材スロットを使い、チェーンを作らず特殊召喚します。融合召喚としては扱いません。YGOPRO と KoishiPRO の両方に対応します。",
+    ],
+  接触融合素材范围: [
+    "Contact material controllers",
+    "コンタクト素材のコントローラー",
+  ],
+  仅自己的素材: ["Your materials only", "自分の素材のみ"],
+  仅对方的素材: ["Opponent's materials only", "相手の素材のみ"],
+  双方的素材: ["Both players' materials", "双方の素材"],
+  接触融合素材来源: ["Contact material locations", "コンタクト素材の場所"],
+  手牌与怪兽区域: ["Hand and Monster Zone", "手札・モンスターゾーン"],
+  怪兽区域与墓地: ["Monster Zone and GY", "モンスターゾーン・墓地"],
+  "手牌、怪兽区域与墓地": [
+    "Hand, Monster Zone and GY",
+    "手札・モンスターゾーン・墓地",
+  ],
+  接触融合素材处理: ["Contact material payment", "コンタクト素材の処理"],
+  "作为费用洗回卡组／额外卡组": [
+    "Shuffle into Deck / Extra Deck as cost",
+    "コストとしてデッキ・ＥＸデッキに戻す",
+  ],
+  作为费用表侧除外: ["Banish face-up as cost", "コストとして表側で除外"],
+  作为费用送去墓地: ["Send to GY as cost", "コストとして墓地へ送る"],
+  为特殊召唤解放素材: [
+    "Tribute materials for the Special Summon",
+    "特殊召喚の素材としてリリース",
+  ],
+  额外卡组召唤限制: [
+    "Summoning restrictions from Extra Deck",
+    "ＥＸデッキからの召喚制限",
+  ],
+  "仅约束从额外卡组召唤；完成正规手续后，仍可通过其他效果从墓地等区域特殊召唤。":
+    [
+      "Restricts Summoning from the Extra Deck only. After a proper Summon, effects can still Special Summon it from the GY or other locations.",
+      "ＥＸデッキからの召喚のみを制限します。正規の手順で召喚した後は、効果で墓地などから特殊召喚できます。",
+    ],
+  接触手续或融合召唤: [
+    "Contact procedure or Fusion Summon",
+    "コンタクト手順または融合召喚",
+  ],
+  仅接触手续: ["Contact procedure only", "コンタクト手順のみ"],
+  不添加额外限制: ["No additional restriction", "追加の制限なし"],
+  场上素材必须表侧表示: [
+    "Materials on the field must be face-up",
+    "フィールドの素材は表側表示のみ",
+  ],
+  "接触手续不允许融合素材代用；上方代用开关仅影响通常融合召唤。使用对方素材时，仅支持其表侧怪兽区域。":
+    [
+      "Fusion substitutes cannot be used for this procedure; the substitute option above only affects regular Fusion Summons. Opponent's materials must be face-up in their Monster Zone.",
+      "この手順では融合素材代用は使えません。上の代用設定は通常の融合召喚にのみ適用されます。相手の素材はモンスターゾーンの表側表示に限ります。",
+    ],
+  "接触融合配置无效。": [
+    "Invalid Contact Fusion configuration.",
+    "コンタクト融合の設定が無効です。",
+  ],
+  "接触融合的解放素材仅支持手牌和怪兽区域。": [
+    "Tributed Contact materials must be in the hand or Monster Zone.",
+    "リリースするコンタクト素材は手札・モンスターゾーンに限ります。",
+  ],
+  "使用对方素材的接触融合仅支持表侧怪兽区域。": [
+    "Opponent's Contact materials must be face-up in their Monster Zone.",
+    "相手のコンタクト素材はモンスターゾーンの表側表示に限ります。",
+  ],
+  "接触融合需要启用融合怪兽的融合素材槽。": [
+    "Contact Fusion requires an enabled Fusion Monster material-slot procedure.",
+    "コンタクト融合には融合モンスターの素材スロット手順を有効にしてください。",
+  ],
   "融合／仪式召唤": ["Fusion / Ritual Summon", "融合・儀式召喚"],
   "配置召唤对象、素材区域与筛选，通过效果进行融合或仪式召唤。": [
     "Choose the summoned monsters, material locations and filters for a Fusion or Ritual Summon by an effect.",

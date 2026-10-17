@@ -10,6 +10,11 @@ import {
 } from "./model";
 import { ATTRIBUTES, RACES } from "./catalog";
 import { emitTrackingRegistration, isTemporaryBanish } from "./tracking";
+import {
+  emitSummoningStep,
+  summoningCategories,
+  validateSummoningStep,
+} from "./sequence-summoning";
 
 export const ZONE_LUA: Record<Zone, string> = {
   deck: "LOCATION_DECK",
@@ -38,6 +43,7 @@ export const OPERATION_META: Record<
   banish: { category: "CATEGORY_REMOVE", hint: "HINTMSG_REMOVE" },
   revive: { category: "CATEGORY_SPECIAL_SUMMON", hint: "HINTMSG_SPSUMMON" },
   summon: { category: "CATEGORY_SPECIAL_SUMMON", hint: "HINTMSG_SPSUMMON" },
+  summoning: { category: "CATEGORY_SPECIAL_SUMMON", hint: "HINTMSG_SPSUMMON" },
   boost: {
     category: "CATEGORY_ATKCHANGE+CATEGORY_DEFCHANGE",
     hint: "HINTMSG_FACEUP",
@@ -85,13 +91,11 @@ const legacy = new Set([
   "destroy",
   "bounce",
   "banish",
-  "revive",
-  "summon",
   "self-summon",
   "boost",
 ]);
 export const usesOperations = (block: EffectBlock) =>
-  !["custom-effect", "self-summon", "summoning"].includes(block.template) &&
+  !["custom-effect", "self-summon"].includes(block.template) &&
   (!legacy.has(block.template) || !!block.tracking?.length);
 export function blockOperations(block: EffectBlock): EffectOperation[] {
   if (block.template === "sequence") return block.operations || [];
@@ -99,6 +103,7 @@ export function blockOperations(block: EffectBlock): EffectOperation[] {
   return [
     {
       ...defaults,
+      uid: block.uid,
       amount: block.amount,
       source: block.source,
       players: block.players,
@@ -110,6 +115,7 @@ export function blockOperations(block: EffectBlock): EffectOperation[] {
       position: block.position,
       duration: block.duration,
       destination: block.destination,
+      summoning: block.summoning,
     },
   ];
 }
@@ -188,6 +194,8 @@ export function validateOperations(block: EffectBlock): string[] {
       add("未知处理类型。");
       continue;
     }
+    if (op.action === "summoning")
+      for (const error of validateSummoningStep(op)) add(error);
     if (!Number.isInteger(op.amount) || op.amount < 1 || op.amount > 40)
       add("数量须为 1–40。");
     if (
@@ -275,9 +283,11 @@ export function validateOperations(block: EffectBlock): string[] {
       add("丢弃手牌的来源必须是手牌。");
     if (
       ["revive", "summon"].includes(op.action) &&
-      (op.source === "extra" || op.amount !== 1 || op.selection === "all")
+      (op.source === "extra" || op.amount > 5)
     )
-      add("特殊召唤目前每步支持 1 只主卡组怪兽；额外或同时特召请用高级回调。");
+      add(
+        "普通特殊召唤每步支持 1–5 只非额外卡组的怪兽；融合／仪式请使用召唤步骤。",
+      );
     if (
       [
         "equip",
@@ -367,10 +377,8 @@ function predicate(op: EffectOperation): string {
     "to-deck": "c:IsAbleToDeck()",
     banish: "c:IsAbleToRemove()",
     "discard-hand": "c:IsDiscardable(REASON_EFFECT)",
-    summon:
-      "c:IsType(TYPE_MONSTER) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)",
-    revive:
-      "c:IsType(TYPE_MONSTER) and c:IsCanBeSpecialSummoned(e,0,tp,false,false)",
+    summon: `c:IsType(TYPE_MONSTER) and c:IsCanBeSpecialSummoned(e,0,tp,false,false,${summonPosition(op)})`,
+    revive: `c:IsType(TYPE_MONSTER) and c:IsCanBeSpecialSummoned(e,0,tp,false,false,${summonPosition(op)})`,
     boost: "c:IsFaceup() and c:IsType(TYPE_MONSTER)",
     disable: "c:IsFaceup()",
     equip: "c:IsFaceup() and c:IsType(TYPE_MONSTER) and c~=e:GetHandler()",
@@ -394,6 +402,15 @@ function predicate(op: EffectOperation): string {
   return out.length ? out.join(" and ") : "true";
 }
 const base = "e,tp,eg,ep,ev,re,r,rp";
+function summonPosition(op: EffectOperation): string {
+  return op.position === "faceup-attack"
+    ? "POS_FACEUP_ATTACK"
+    : op.position === "faceup-defense"
+      ? "POS_FACEUP_DEFENSE"
+      : op.position === "facedown-defense"
+        ? "POS_FACEDOWN_DEFENSE"
+        : "POS_FACEUP";
+}
 function players(op: EffectOperation): string[] {
   return op.players === "both"
     ? ["tp", "1-tp"]
@@ -420,8 +437,15 @@ function scalarCheck(op: EffectOperation): string | undefined {
     return `e:GetHandler():CheckRemoveOverlayCard(tp,${op.amount},REASON_EFFECT)`;
   if (op.action === "damage" || op.action === "heal") return "true";
 }
-function extraCheck(op: EffectOperation): string {
-  if (["revive", "summon", "control"].includes(op.action))
+function extraCheck(op: EffectOperation, resolution = false): string {
+  if (["revive", "summon"].includes(op.action)) {
+    const minimum =
+      op.selection === "select" || (!resolution && op.selection === "target")
+        ? op.amount
+        : 1;
+    return `Duel.GetLocationCount(tp,LOCATION_MZONE)>=${minimum}${minimum > 1 ? " and not Duel.IsPlayerAffectedByEffect(tp,59822133)" : ""} and `;
+  }
+  if (op.action === "control")
     return "Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and ";
   if (op.action === "equip")
     return "(e:GetHandler():IsLocation(LOCATION_SZONE) or Duel.GetLocationCount(tp,LOCATION_SZONE)>0) and ";
@@ -436,7 +460,10 @@ export function operationCategory(block: EffectBlock): string {
     [
       ...new Set(
         blockOperations(block).flatMap((o) =>
-          (OPERATION_META[o.action]?.category || "0").split("+"),
+          (o.action === "summoning"
+            ? summoningCategories(o)
+            : OPERATION_META[o.action]?.category || "0"
+          ).split("+"),
         ),
       ),
     ]
@@ -603,7 +630,10 @@ function emitTargetGroups(
 function emitOperationInfo(ops: EffectOperation[]): string[] {
   const buckets = new Map<string, EffectOperation[]>();
   for (const op of ops) {
-    for (const category of OPERATION_META[op.action].category.split("+")) {
+    for (const category of (op.action === "summoning"
+      ? summoningCategories(op)
+      : OPERATION_META[op.action].category
+    ).split("+")) {
       if (category === "0") continue;
       buckets.set(category, [...(buckets.get(category) || []), op]);
     }
@@ -655,7 +685,18 @@ function emitOperationInfo(ops: EffectOperation[]): string[] {
     let dynamic = conditional;
     const zones = new Set<string>();
     for (const op of entries) {
-      if (["negate-activation", "negate-effect"].includes(op.action))
+      if (op.action === "summoning") {
+        dynamic = true;
+        zones.add(
+          category === "CATEGORY_REMOVE"
+            ? "LOCATION_GRAVE"
+            : op.summoning?.kind === "fusion"
+              ? "LOCATION_EXTRA"
+              : op.summoning?.ritualSummonFrom === "hand-grave"
+                ? "LOCATION_HAND+LOCATION_GRAVE"
+                : "LOCATION_HAND",
+        );
+      } else if (["negate-activation", "negate-effect"].includes(op.action))
         groups.push("eg");
       else {
         zones.add(ZONE_LUA[op.source]);
@@ -673,7 +714,9 @@ function emitOperationInfo(ops: EffectOperation[]): string[] {
       // A later selection/result can overlap earlier groups and can change
       // cardinality. Do not publish a partial group as the complete target set.
       const count =
-        entries.length === 1 && entries[0].selection === "select"
+        entries.length === 1 &&
+        entries[0].selection === "select" &&
+        !(entries[0].action === "summoning" && category === "CATEGORY_REMOVE")
           ? entries[0].amount
           : 0;
       lines.push(
@@ -719,6 +762,12 @@ export function emitOperations(
   ops.forEach((op, i) => {
     const step = `${fn}step${i + 1}`,
       filter = `${step}filter`;
+    if (op.action === "summoning") {
+      functions.push(...emitSummoningStep(op, step));
+      if (!op.optional && op.next === "always")
+        checks.push(`${step}check(${base})`);
+      return;
+    }
     const isScalar = OPERATION_META[op.action].scalar;
     const temporary = isTemporaryBanish(
       block,
@@ -746,6 +795,14 @@ export function emitOperations(
           ? `${filter}(e:GetHandler(),e,tp)`
           : `Duel.${op.selection === "target" ? "IsExistingTarget" : "IsExistingMatchingCard"}(${filter},tp,${zonePair(op)},${op.selection === "all" ? 1 : op.amount},${exclude},e,tp)`;
     const check = `${extraCheck(op)}${exist}`;
+    const simultaneous = ["revive", "summon"].includes(op.action);
+    if (simultaneous && op.selection === "all") {
+      func(`${step}allcheck`, "e,tp", [
+        `local g=Duel.GetMatchingGroup(${filter},tp,${zonePair(op)},${exclude},e,tp)`,
+        "local count=g:GetCount()",
+        "return count>0 and count<=5 and Duel.GetLocationCount(tp,LOCATION_MZONE)>=count and (count==1 or not Duel.IsPlayerAffectedByEffect(tp,59822133))",
+      ]);
+    }
     // Mandatory independent steps must be possible when the effect is activated.
     if (
       op.selection === "target" ||
@@ -753,7 +810,9 @@ export function emitOperations(
         op.next === "always" &&
         !references.includes(op.selection))
     )
-      checks.push(`(${check})`);
+      checks.push(
+        `(${check}${simultaneous && op.selection === "all" ? ` and ${step}allcheck(e,tp)` : ""})`,
+      );
     const opLines: string[] = [];
     if (isScalar) {
       if (["negate-activation", "negate-effect"].includes(op.action)) {
@@ -797,9 +856,9 @@ export function emitOperations(
         );
       }
     } else {
-      if (extraCheck(op))
+      if (extraCheck(op, true))
         opLines.push(
-          `if not (${extraCheck(op)}true) then return false,nil end`,
+          `if not (${extraCheck(op, true)}true) then return false,nil end`,
         );
       if (op.action === "attach-material" || op.selection === "self")
         opLines.push(
@@ -840,6 +899,31 @@ export function emitOperations(
         ["target", ...references].includes(op.selection)
       )
         opLines.push("g=g:Filter(aux.NecroValleyFilter(),nil)");
+      if (simultaneous) {
+        opLines.push(`g=g:Filter(${resolutionFilter},nil,e,tp)`);
+        if (op.selection === "all")
+          opLines.push(
+            "if g:GetCount()>5 or g:GetCount()>Duel.GetLocationCount(tp,LOCATION_MZONE) or (g:GetCount()>1 and Duel.IsPlayerAffectedByEffect(tp,59822133)) then return false,nil end",
+          );
+        else if (["target", ...references].includes(op.selection))
+          opLines.push(
+            `local limit=math.min(${op.amount},Duel.GetLocationCount(tp,LOCATION_MZONE))`,
+            ...(op.amount > 1
+              ? [
+                  "if g:GetCount()>1 and Duel.IsPlayerAffectedByEffect(tp,59822133) then return false,nil end",
+                ]
+              : []),
+            "if limit<=0 then return false,nil end",
+            "if g:GetCount()>limit then",
+            "\tDuel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)",
+            "\tg=g:Select(tp,limit,limit,nil)",
+            "end",
+          );
+        else
+          opLines.push(
+            `if g:GetCount()>Duel.GetLocationCount(tp,LOCATION_MZONE) or (g:GetCount()>1 and Duel.IsPlayerAffectedByEffect(tp,59822133)) then return false,nil end`,
+          );
+      }
       opLines.push("if g:GetCount()==0 then return false,g end");
       opLines.push(...cardOperation(op, temporary));
     }
@@ -947,10 +1031,12 @@ function cardOperation(op: EffectOperation, temporary = false): string[] {
       "LOCATION_DECK+LOCATION_EXTRA",
     );
   if (["revive", "summon"].includes(action))
-    return moved(
-      "Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP)",
-      "LOCATION_MZONE",
-    );
+    return [
+      `local affected=Duel.SpecialSummon(g,0,tp,tp,false,false,${summonPosition(op)})`,
+      "if affected==0 then return false,Group.CreateGroup() end",
+      "local result=Duel.GetOperatedGroup():Filter(function(tc) return g:IsContains(tc) and tc:IsLocation(LOCATION_MZONE) end,nil)",
+      "return result:GetCount()>0,result",
+    ];
   if (action === "change-position")
     return moved(
       `Duel.ChangePosition(g,${op.position === "faceup-attack" ? "POS_FACEUP_ATTACK" : op.position === "faceup-defense" ? "POS_FACEUP_DEFENSE" : "POS_FACEDOWN_DEFENSE"})`,

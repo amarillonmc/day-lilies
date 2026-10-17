@@ -169,7 +169,7 @@ describe("visual summon procedures", () => {
     card.effects = [block];
     const compiled = result(card);
     expect(compiled.lua).toContain(
-      'function(c) return 8 end,"Equal",LOCATION_HAND,s.e1summonGrave,s.e1summonMaterial,nil',
+      'function(c) return 8 end,"Equal",LOCATION_HAND,s.e1step1grave,s.e1step1material,nil',
     );
     expect(compiled.lua).toContain(
       "and c:IsLocation(LOCATION_HAND+LOCATION_MZONE)",

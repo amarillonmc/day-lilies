@@ -37,7 +37,7 @@ describe("composable effect operations", () => {
     expect(result.strings).toHaveLength(1);
     expect(block.template).toBe("sequence");
   });
-  it("accepts independent target groups but rejects unsupported simultaneous summons", () => {
+  it("accepts independent target groups and simultaneous main-deck summons", () => {
     const { card, project, ops } = sequence("destroy", "banish");
     expect(
       compileCard(card, project).diagnostics.filter(
@@ -52,6 +52,10 @@ describe("composable effect operations", () => {
     ).toEqual([]);
     ops[1].action = "summon";
     ops[1].amount = 2;
+    expect(compileCard(card, project).lua).toContain(
+      "Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP)",
+    );
+    ops[1].source = "extra";
     expect(compileCard(card, project).lua).toBe("");
   });
   it("rejects invalid Lua callbacks and validates resource amounts", () => {

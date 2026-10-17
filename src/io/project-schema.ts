@@ -27,6 +27,7 @@ const action = z.enum([
   "banish",
   "revive",
   "summon",
+  "summoning",
   "boost",
   "damage",
   "heal",
@@ -89,6 +90,16 @@ const filter = z.object({
   effect: z.boolean().optional(),
   expression: z.string().max(20000).optional(),
 });
+const summoning = z.object({
+  kind: z.enum(["fusion", "ritual"]),
+  monsterFilter: filter,
+  materialFilter: filter,
+  materialSource: z.enum(["hand-field", "field", "hand", "hand-field-grave"]),
+  ritualLevel: z.enum(["original", "current", "fixed"]).optional(),
+  ritualFixedLevel: positive.max(13).optional(),
+  ritualComparison: z.enum(["equal", "at-least"]).optional(),
+  ritualSummonFrom: z.enum(["hand", "hand-grave"]).optional(),
+});
 const operation = z.object({
   uid: z.string().min(1),
   action,
@@ -96,6 +107,7 @@ const operation = z.object({
   source: sourceZone,
   players: playerScope,
   filter,
+  summoning: summoning.optional(),
   selection: z.enum([
     "target",
     "select",
@@ -264,23 +276,7 @@ const effect = z.object({
     )
     .max(8)
     .optional(),
-  summoning: z
-    .object({
-      kind: z.enum(["fusion", "ritual"]),
-      monsterFilter: filter,
-      materialFilter: filter,
-      materialSource: z.enum([
-        "hand-field",
-        "field",
-        "hand",
-        "hand-field-grave",
-      ]),
-      ritualLevel: z.enum(["original", "current", "fixed"]).optional(),
-      ritualFixedLevel: positive.max(13).optional(),
-      ritualComparison: z.enum(["equal", "at-least"]).optional(),
-      ritualSummonFrom: z.enum(["hand", "hand-grave"]).optional(),
-    })
-    .optional(),
+  summoning: summoning.optional(),
 });
 const procedure = z.object({
   mode: z.enum(["none", "synchro", "xyz", "link", "fusion"]),
@@ -306,6 +302,20 @@ const procedure = z.object({
     .max(8)
     .optional(),
   fusionSubstitute: z.boolean().optional(),
+  contactFusion: z
+    .object({
+      materialSource: z.enum([
+        "field",
+        "hand-field",
+        "field-grave",
+        "hand-field-grave",
+      ]),
+      materialPlayers: playerScope,
+      materialAction: z.enum(["to-deck", "banish", "send-grave", "release"]),
+      faceup: z.boolean(),
+      restriction: z.enum(["none", "contact-only", "contact-or-fusion"]),
+    })
+    .optional(),
 });
 const card = z.object({
   uid: z.string().min(1),

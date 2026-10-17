@@ -10,6 +10,7 @@ const cardActions = new Set([
   "banish",
   "revive",
   "summon",
+  "summoning",
   "self-summon",
   "boost",
   "to-deck",
@@ -82,7 +83,7 @@ export function validateTracking(block: EffectBlock): string[] {
   const tracking = block.tracking || [];
   if (!tracking.length) return errors;
   if (tracking.length > 8) errors.push("每个效果最多配置 8 项延迟追踪。");
-  if (["custom-effect", "summoning", "self-summon"].includes(block.template))
+  if (["custom-effect", "self-summon"].includes(block.template))
     errors.push("此类效果暂不支持延迟追踪；请使用特殊召唤等普通处理步骤。");
   if (new Set(tracking.map((t) => t.uid)).size !== tracking.length)
     errors.push("延迟追踪标识不可重复。");

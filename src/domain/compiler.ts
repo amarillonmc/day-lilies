@@ -2,7 +2,6 @@ import luaparse from "luaparse";
 import {
   emitSummonProcedure,
   validateSummonProcedure,
-  emitSummoning,
   validateSummoning,
 } from "./summon-procedures";
 import type {
@@ -373,8 +372,12 @@ function validateCard(card: Card, target: TargetCore = "ygopro"): Diagnostic[] {
       (b) =>
         b.template === "custom-effect" ||
         (card.subtype === "ritual" &&
-          b.template === "summoning" &&
-          b.summoning?.kind === "ritual") ||
+          ((b.template === "summoning" && b.summoning?.kind === "ritual") ||
+            (b.template === "sequence" &&
+              b.operations?.some(
+                (op) =>
+                  op.action === "summoning" && op.summoning?.kind === "ritual",
+              )))) ||
         (card.subtype === "equip" && b.template === "equip") ||
         (card.subtype === "equip" &&
           b.template === "sequence" &&
@@ -455,16 +458,11 @@ function validateCard(card: Card, target: TargetCore = "ygopro"): Diagnostic[] {
     if (!integer(block.amount, 1, 40))
       add("error", "处理数量须为 1–40 的整数。", block);
     if (
-      (targeted.has(block.template) ||
-        block.template === "summon" ||
+      ((targeted.has(block.template) && block.template !== "revive") ||
         block.template === "self-summon") &&
       block.amount !== 1
     )
-      add(
-        "error",
-        "此单步模板支持 1 张卡；多对象请使用复合效果，批量特殊召唤仍需高级回调。",
-        block,
-      );
+      add("error", "此单步模板支持 1 张卡；多对象请使用复合效果。", block);
     if (
       block.cost !== "none" &&
       !integer(block.costAmount, 1, block.cost === "lp" ? 999999 : 40)
@@ -780,11 +778,9 @@ function emitBlock(
         ]
           .filter(Boolean)
           .join("+")
-      : block.template === "summoning"
-        ? emitSummoning(block, fn, index).category
-        : usesOperations(block)
-          ? operationCategory(block)
-          : meta[block.template].category;
+      : usesOperations(block)
+        ? operationCategory(block)
+        : meta[block.template].category;
   init.push(`${ev}:SetCategory(${category})`);
   const properties =
     targeted.has(block.template) ||
@@ -930,11 +926,6 @@ function emitBlock(
       `${ev}b:SetCode(EVENT_SPSUMMON_SUCCESS)`,
       `c:RegisterEffect(${ev}b)`,
     );
-  if (block.template === "summoning") {
-    const summoning = emitSummoning(block, fn, index);
-    funcs.push(...summoning.funcs);
-    return { init, funcs };
-  }
   if (usesOperations(block)) {
     for (const op of blockOperations(block))
       if (op.action === "add-counter" && op.selection === "self")

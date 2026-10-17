@@ -129,7 +129,7 @@ export interface CardFilter {
 }
 export type OperationAction = Exclude<
   TemplateId,
-  "self-summon" | "sequence" | "custom-effect" | "summoning"
+  "self-summon" | "sequence" | "custom-effect"
 >;
 export type OperationSelection =
   "target" | "select" | "all" | "self" | "previous" | "target-group" | "result";
@@ -149,6 +149,7 @@ export interface EffectOperation extends OperationOptions {
   source: Zone;
   players: PlayerScope;
   filter: CardFilter;
+  summoning?: SummoningEffect;
   selection: OperationSelection;
   /** Display name for an independently selected activation target group. */
   targetName?: string;
@@ -249,6 +250,16 @@ export interface SummonProcedure {
   xyzAlternative?: { filter: CardFilter; description: number };
   fusionSlots?: FusionMaterialSlot[];
   fusionSubstitute?: boolean;
+  contactFusion?: ContactFusionProcedure;
+}
+export interface ContactFusionProcedure {
+  materialSource: "field" | "hand-field" | "field-grave" | "hand-field-grave";
+  materialPlayers: PlayerScope;
+  materialAction: "to-deck" | "banish" | "send-grave" | "release";
+  /** Restrict on-field materials to face-up cards; hidden hand cards stay usable. */
+  faceup: boolean;
+  /** Applies only to summons from the Extra Deck, not later revival. */
+  restriction: "none" | "contact-only" | "contact-or-fusion";
 }
 export interface FusionMaterialSlot {
   kind: "code" | "filter";
@@ -521,5 +532,6 @@ export function createOperation(
     defense: block.defense,
     value: block.value,
     counterType: block.counterType,
+    ...(block.summoning ? { summoning: block.summoning } : {}),
   };
 }

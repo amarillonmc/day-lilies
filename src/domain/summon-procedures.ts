@@ -1,6 +1,7 @@
 import type {
   Card,
   CardFilter,
+  ContactFusionProcedure,
   EffectBlock,
   FusionMaterialSlot,
   SummoningEffect,
@@ -19,6 +20,49 @@ const sources = {
   field: "LOCATION_MZONE",
   "hand-field-grave": "LOCATION_HAND+LOCATION_MZONE+LOCATION_GRAVE",
 } as const;
+const contactSources = {
+  field: "LOCATION_MZONE",
+  "hand-field": "LOCATION_HAND+LOCATION_MZONE",
+  "field-grave": "LOCATION_MZONE+LOCATION_GRAVE",
+  "hand-field-grave": "LOCATION_HAND+LOCATION_MZONE+LOCATION_GRAVE",
+} as const;
+
+export function defaultContactFusion(): ContactFusionProcedure {
+  return {
+    materialSource: "field",
+    materialPlayers: "self",
+    materialAction: "to-deck",
+    faceup: true,
+    restriction: "contact-or-fusion",
+  };
+}
+
+function validateContactFusion(value: ContactFusionProcedure): string[] {
+  const errors: string[] = [];
+  if (
+    !Object.hasOwn(contactSources, value.materialSource) ||
+    !["self", "opponent", "both"].includes(value.materialPlayers) ||
+    !["to-deck", "banish", "send-grave", "release"].includes(
+      value.materialAction,
+    ) ||
+    !["none", "contact-only", "contact-or-fusion"].includes(
+      value.restriction,
+    ) ||
+    typeof value.faceup !== "boolean"
+  )
+    errors.push("接触融合配置无效。");
+  if (
+    value.materialAction === "release" &&
+    !["field", "hand-field"].includes(value.materialSource)
+  )
+    errors.push("接触融合的解放素材仅支持手牌和怪兽区域。");
+  if (
+    value.materialPlayers !== "self" &&
+    (value.materialSource !== "field" || !value.faceup)
+  )
+    errors.push("使用对方素材的接触融合仅支持表侧怪兽区域。");
+  return errors;
+}
 
 export function summonFilterExpression(filter: CardFilter): string {
   const clauses = extraFilterClauses(filter);
@@ -79,6 +123,8 @@ export function fusionMaterialSlots(card: Card): FusionMaterialSlot[] {
 export function validateSummonProcedure(card: Card): string[] {
   const p = card.procedure;
   const errors: string[] = [];
+  if (p.contactFusion && (p.mode !== "fusion" || card.kind !== "fusion"))
+    errors.push("接触融合需要启用融合怪兽的融合素材槽。");
   if (p.mode === "none") return errors;
   if (
     p.mode !== "fusion" &&
@@ -108,6 +154,7 @@ export function validateSummonProcedure(card: Card): string[] {
   if (p.mode === "link" && (p.min > card.level || p.max > card.level))
     errors.push("连接素材数量不能超过 LINK 值。");
   if (p.mode === "fusion") {
+    if (p.contactFusion) errors.push(...validateContactFusion(p.contactFusion));
     const slots = fusionMaterialSlots(card);
     if (
       !slots.length ||
@@ -207,6 +254,43 @@ export function emitSummonProcedure(card: Card): {
         `aux.AddFusionProcMixRep(c,${substitute},true,${repeated},${slot.min},${slot.max}${fixed.length ? "," + fixed.join(",") : ""})`,
       );
     }
+    if (p.contactFusion) {
+      const contact = p.contactFusion;
+      const location = contactSources[contact.materialSource];
+      const legalPayment = {
+        "to-deck": "c:IsAbleToDeckOrExtraAsCost()",
+        banish: "c:IsAbleToRemoveAsCost()",
+        "send-grave": "c:IsAbleToGraveAsCost()",
+        release: "c:IsReleasable(REASON_SPSUMMON)",
+      }[contact.materialAction];
+      const payment = {
+        "to-deck": "aux.ContactFusionSendToDeck(c)",
+        banish: "Duel.Remove,POS_FACEUP,REASON_COST",
+        "send-grave": "Duel.SendtoGrave,REASON_COST",
+        release: "Duel.Release,REASON_SPSUMMON+REASON_MATERIAL",
+      }[contact.materialAction];
+      funcs.push(
+        `function s.contactMaterial(c,fc)\n\treturn c:IsType(TYPE_MONSTER) and ${legalPayment}${contact.faceup ? " and (not c:IsLocation(LOCATION_ONFIELD) or c:IsFaceup())" : ""}\nend`,
+      );
+      // This official helper passes tp|0x200 to the same material slots, so
+      // contact summoning never uses named-material Fusion substitutes.
+      init.push(
+        `aux.AddContactFusionProcedure(c,s.contactMaterial,${contact.materialPlayers === "opponent" ? "0" : location},${contact.materialPlayers === "self" ? "0" : location},${payment})`,
+      );
+      if (contact.restriction !== "none") {
+        init.push(
+          "local contactLimit=Effect.CreateEffect(c)",
+          "contactLimit:SetType(EFFECT_TYPE_SINGLE)",
+          "contactLimit:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)",
+          "contactLimit:SetCode(EFFECT_SPSUMMON_CONDITION)",
+          "contactLimit:SetValue(s.contactSummonLimit)",
+          "c:RegisterEffect(contactLimit)",
+        );
+        funcs.push(
+          `function s.contactSummonLimit(e,se,sp,st)\n\treturn not e:GetHandler():IsLocation(LOCATION_EXTRA)${contact.restriction === "contact-or-fusion" ? " or (st&SUMMON_TYPE_FUSION)==SUMMON_TYPE_FUSION" : ""}\nend`,
+        );
+      }
+    }
   }
   return { init, funcs };
 }
@@ -229,57 +313,6 @@ export function validateSummoning(block: EffectBlock): string[] {
     errors.push("仪式固定等级须为 1–13。");
   return errors;
 }
-export function emitSummoning(
-  block: EffectBlock,
-  fn: string,
-  _index: number,
-): { funcs: string[]; category: string } {
-  const s = block.summoning!;
-  const funcs = [
-    `function ${fn}summonMonster(c)\n\treturn ${summonFilterExpression(s.monsterFilter)}\nend`,
-    `function ${fn}summonMaterial(c,e,tp)\n\treturn ${s.kind === "fusion" ? "aux.FMaterialFilter(c,e,tp) and " : ""}${summonFilterExpression(s.materialFilter)}${s.kind === "ritual" ? ` and c:IsLocation(${s.materialSource === "hand-field-grave" ? sources["hand-field"] : sources[s.materialSource]})` : ""}\nend`,
-  ];
-  const args = "e,tp,eg,ep,ev,re,r,rp";
-  if (s.kind === "fusion") {
-    const params = `{filter=${fn}summonMonster,mat_location=${sources[s.materialSource]},mat_filter=${fn}summonMaterial,mat_operation=aux.FMaterialToGrave,grave_filter=aux.FMaterialRemoveFilter,grave_operation=aux.FMaterialRemove,removed_operation=aux.FMaterialToGrave,deck_filter=aux.FMaterialToGraveFilter,deck_operation=aux.FMaterialToGrave,extra_filter=aux.FMaterialToGraveFilter,extra_operation=aux.FMaterialToGrave,spsummon_nocheck=false}`;
-    funcs.push(
-      `function ${fn}target(${args},chk)\n\treturn aux.FusionEffectUltimateTarget(${params})(${args},chk)\nend`,
-    );
-    funcs.push(
-      `function ${fn}operation(${args})\n\treturn aux.FusionEffectUltimateOperation(${params})(${args})\nend`,
-    );
-    return {
-      funcs,
-      category: "CATEGORY_SPECIAL_SUMMON+CATEGORY_FUSION_SUMMON",
-    };
-  }
-  const level =
-    s.ritualLevel === "fixed"
-      ? `function(c) return ${s.ritualFixedLevel} end`
-      : s.ritualLevel === "current"
-        ? "Card.GetLevel"
-        : "Card.GetOriginalLevel";
-  const comparison = s.ritualComparison === "equal" ? "Equal" : "Greater";
-  const location =
-    s.ritualSummonFrom === "hand-grave"
-      ? "LOCATION_HAND+LOCATION_GRAVE"
-      : "LOCATION_HAND";
-  const grave =
-    s.materialSource === "hand-field-grave" ? `${fn}summonGrave` : "nil";
-  if (grave !== "nil")
-    funcs.push(
-      `function ${grave}(c)\n\treturn ${summonFilterExpression(s.materialFilter)}\nend`,
-    );
-  const parameters = `${fn}summonMonster,${level},"${comparison}",${location},${grave},${fn}summonMaterial,nil`;
-  funcs.push(
-    `function ${fn}target(${args},chk)\n\treturn aux.RitualUltimateTarget(${parameters})(${args},chk)\nend`,
-  );
-  funcs.push(
-    `function ${fn}operation(${args})\n\treturn aux.RitualUltimateOperation(${parameters})(${args})\nend`,
-  );
-  return { funcs, category: "CATEGORY_SPECIAL_SUMMON" };
-}
-
 export function defaultSummoning(
   kind: SummoningEffect["kind"] = "fusion",
 ): SummoningEffect {

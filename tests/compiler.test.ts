@@ -63,14 +63,16 @@ describe("OCG template compilation", () => {
   it("keeps grave targeting and resolution selection distinct and guards Necrovalley", () => {
     const { card, project } = setup("revive");
     let result = compileCard(card, project);
-    expect(result.lua).toContain("Duel.SelectTarget");
-    expect(result.lua).toContain("tc:IsRelateToEffect(e)");
-    expect(result.lua).toContain("aux.NecroValleyFilter()(tc)");
-    expect(result.lua).toContain("Duel.GetLocationCount(tp,LOCATION_MZONE)<=0");
+    expect(result.lua).toContain("Duel.SetTargetCard(combined)");
+    expect(result.lua).toContain(
+      "g:Filter(Card.IsRelateToChain,nil,Duel.GetCurrentChain())",
+    );
+    expect(result.lua).toContain("g=g:Filter(aux.NecroValleyFilter(),nil)");
+    expect(result.lua).toContain("Duel.GetLocationCount(tp,LOCATION_MZONE)>=1");
     card.effects = [createEffect("summon", card)];
     result = compileCard(card, project);
     expect(result.lua).not.toContain("Duel.SelectTarget");
-    expect(result.lua).toContain("aux.NecroValleyFilter(s.e1filter)");
+    expect(result.lua).toContain("aux.NecroValleyFilter(s.e1step1filter)");
     expect(result.lua).toContain(
       "Duel.SpecialSummon(g,0,tp,tp,false,false,POS_FACEUP)",
     );
@@ -104,9 +106,11 @@ describe("OCG template compilation", () => {
   it("only allows explicitly supported source/count combinations", () => {
     const { card, project, block } = setup("revive");
     block.amount = 2;
-    expect(
-      errors(card, project).some((d) => d.message.includes("支持 1 张")),
-    ).toBe(true);
+    expect(errors(card, project)).toEqual([]);
+    block.amount = 6;
+    expect(errors(card, project).some((d) => d.message.includes("1–5"))).toBe(
+      true,
+    );
     block.amount = 1;
     block.source = "deck";
     expect(

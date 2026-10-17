@@ -42,7 +42,9 @@ describe("localized visual composition", () => {
       second.selection = "target-group";
       second.reference = first.uid;
       const effect = createEffect("sequence");
-      effect.operations = [first, second];
+      const ritual = createOperation("summoning");
+      ritual.summoning!.kind = "ritual";
+      effect.operations = [first, second, ritual];
       effect.tracking = [
         { ...createTracking(first.uid), action: "return-temporary" },
       ];
@@ -60,6 +62,15 @@ describe("localized visual composition", () => {
       );
       expect(html).toContain(translate("跨时点追踪", language));
       expect(html).toContain(translate("融合／仪式召唤", language));
+      expect(html).toContain(translate("仪式怪兽来源", language));
+      expect(html).toContain(
+        `<option value="hand" selected="">${translate("手牌", language)}</option>`,
+      );
+      expect(html).toContain(
+        `<option value="hand-grave">${translate("手牌与墓地", language)}</option>`,
+      );
+      expect(html).not.toContain(">手牌</option>");
+      expect(html).not.toContain(">手牌与墓地</option>");
       expect(html).toContain('value="设置  日文\nA"');
       expect(html).toContain("1. 设置  日文\nA</option>");
       expect(project).toEqual(before);
