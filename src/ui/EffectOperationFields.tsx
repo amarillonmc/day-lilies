@@ -34,7 +34,8 @@ export function EffectOperationFields({
   onChange,
   sequence = false,
   firstStep = false,
-  anotherTarget = false,
+  operations = [],
+  stepIndex = 0,
 }: {
   value: EffectBlock | EffectOperation;
   action: OperationAction;
@@ -42,7 +43,8 @@ export function EffectOperationFields({
   onChange: (patch: Partial<EffectBlock & EffectOperation>) => void;
   sequence?: boolean;
   firstStep?: boolean;
-  anotherTarget?: boolean;
+  operations?: EffectOperation[];
+  stepIndex?: number;
 }) {
   const { t } = useI18n();
   const selection =
@@ -76,18 +78,38 @@ export function EffectOperationFields({
       ["all", "处理全部符合条件的卡"],
       ["self", "此卡自身"],
       ["previous", "沿用上一处理的卡"],
+      ["target-group", "引用已定义的对象组"],
+      ["result", "引用前面步骤的实际结果"],
     ] as const
   ).filter(
     ([mode]) =>
       mode === selection ||
       !(
-        (mode === "previous" && (firstStep || action === "attach-material")) ||
-        (mode === "target" && (anotherTarget || action === "discard-hand")) ||
+        (mode === "previous" && firstStep) ||
+        (mode === "result" && firstStep) ||
+        (mode === "target" && action === "discard-hand") ||
         (mode === "all" &&
           ["summon", "revive", "control", "equip"].includes(action)) ||
         (mode === "self" && ["equip", "attach-material"].includes(action))
       ),
   );
+  const referenceOptions: [string, string][] = [
+    ["", t("选择来源…")],
+    ...operations.flatMap((op, index): [string, string][] => {
+      if (
+        selection === "target-group"
+          ? op.selection !== "target" || simple.has(op.action)
+          : index >= stepIndex
+      )
+        return [];
+      return [
+        [
+          op.uid,
+          `${index + 1}. ${op.targetName || t(selection === "target-group" ? "对象组" : "处理结果")}`,
+        ],
+      ];
+    }),
+  ];
   const zones =
     !sequence && ["search", "mill"].includes(action)
       ? EFFECT_ZONES.filter(([zone]) => zone === "deck")
@@ -138,10 +160,62 @@ export function EffectOperationFields({
             />
           </Field>
         )}
+        {sequence && selection === "target" && usesCards && (
+          <>
+            <Field
+              label="对象组名称"
+              hint="名称仅用于编辑器；其他步骤通过稳定标识引用此组。"
+            >
+              <input
+                value={("targetName" in value && value.targetName) || ""}
+                maxLength={80}
+                placeholder={t("对象组")}
+                onChange={(e) => onChange({ targetName: e.target.value })}
+              />
+            </Field>
+            <Field
+              label="对象组重叠"
+              hint="只有两组都允许时，同一卡才可同时属于两组。"
+            >
+              <Select
+                value={
+                  ("targetOverlap" in value && value.targetOverlap) ||
+                  "disallow"
+                }
+                options={[
+                  ["disallow", "禁止与其他组重叠"],
+                  ["allow", "允许与同样允许的组重叠"],
+                ]}
+                onChange={(targetOverlap) => onChange({ targetOverlap })}
+              />
+            </Field>
+          </>
+        )}
+        {sequence &&
+          ["target-group", "result"].includes(selection || "") &&
+          usesCards && (
+            <Field
+              label={selection === "target-group" ? "来源对象组" : "来源步骤"}
+              hint={
+                selection === "target-group"
+                  ? "结算时仅处理仍与此连锁关联、且符合当前筛选的对象。"
+                  : "仅引用所选步骤实际处理成功的卡；失败或跳过时为空。"
+              }
+            >
+              <Select
+                value={("reference" in value && value.reference) || ""}
+                options={referenceOptions}
+                translateOptions={false}
+                onChange={(reference) => onChange({ reference })}
+              />
+            </Field>
+          )}
         {!["negate-activation", "negate-effect", "damage", "heal"].includes(
           action,
         ) &&
-          !["self", "previous", "all"].includes(selection || "") && (
+          !["self", "previous", "all", "target-group", "result"].includes(
+            selection || "",
+          ) && (
             <Field
               label="数量"
               hint={

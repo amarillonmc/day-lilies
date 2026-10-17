@@ -9,6 +9,7 @@ import {
   type Zone,
 } from "./model";
 import { ATTRIBUTES, RACES } from "./catalog";
+import { emitTrackingRegistration, isTemporaryBanish } from "./tracking";
 
 export const ZONE_LUA: Record<Zone, string> = {
   deck: "LOCATION_DECK",
@@ -90,7 +91,8 @@ const legacy = new Set([
   "boost",
 ]);
 export const usesOperations = (block: EffectBlock) =>
-  block.template !== "custom-effect" && !legacy.has(block.template);
+  !["custom-effect", "self-summon", "summoning"].includes(block.template) &&
+  (!legacy.has(block.template) || !!block.tracking?.length);
 export function blockOperations(block: EffectBlock): EffectOperation[] {
   if (block.template === "sequence") return block.operations || [];
   const defaults = createOperation(block.template as OperationAction);
@@ -126,6 +128,10 @@ export function extraFilterClauses(f: CardFilter): string[] {
   ] as const)
     if (f[key] != null) out.push(`c:${method}(${f[key]})`);
   if (f.tuner != null) out.push(`${f.tuner ? "" : "not "}c:IsType(TYPE_TUNER)`);
+  if (f.effect != null)
+    out.push(
+      `c:IsType(TYPE_MONSTER) and ${f.effect ? "" : "not "}c:IsType(TYPE_EFFECT)`,
+    );
   if (f.extraDeck != null)
     out.push(
       `${f.extraDeck ? "" : "not "}c:IsType(TYPE_FUSION+TYPE_SYNCHRO+TYPE_XYZ+TYPE_LINK)`,
@@ -135,6 +141,8 @@ export function extraFilterClauses(f: CardFilter): string[] {
 }
 export function validateFilterExtra(f: CardFilter): string[] {
   const errors: string[] = [];
+  if (f.effect != null && typeof f.effect !== "boolean")
+    errors.push("效果怪兽筛选必须为布尔值。");
   if (
     f.codes &&
     (f.codes.length > 100 ||
@@ -172,14 +180,8 @@ export function validateOperations(block: EffectBlock): string[] {
     errors: string[] = [];
   if (!ops.length || ops.length > 16)
     errors.push("复合效果需要 1–16 个处理步骤。");
-  if (
-    ops.filter(
-      (o) => o.selection === "target" && !OPERATION_META[o.action]?.scalar,
-    ).length > 1
-  )
-    errors.push(
-      "同一次发动只配置一组对象；后续步骤可沿用上一组卡或处理时选择。",
-    );
+  if (new Set(ops.map((op) => op.uid)).size !== ops.length)
+    errors.push("处理步骤的标识不能重复。");
   for (const [i, op] of ops.entries()) {
     const add = (s: string) => errors.push(`处理 ${i + 1}：${s}`);
     if (!OPERATION_META[op.action]) {
@@ -193,8 +195,42 @@ export function validateOperations(block: EffectBlock): string[] {
       !["self", "opponent", "both"].includes(op.players)
     )
       add("区域或玩家无效。");
-    if (!["target", "select", "all", "self", "previous"].includes(op.selection))
+    if (
+      ![
+        "target",
+        "select",
+        "all",
+        "self",
+        "previous",
+        "target-group",
+        "result",
+      ].includes(op.selection)
+    )
       add("选择方式无效。");
+    if (op.targetOverlap && !["allow", "disallow"].includes(op.targetOverlap))
+      add("对象组重叠规则无效。");
+    if (op.targetName && op.targetName.length > 80)
+      add("对象组名称最多 80 个字符。");
+    if (
+      op.selection === "target-group" &&
+      !ops.some(
+        (other) =>
+          other.uid === op.reference &&
+          other.selection === "target" &&
+          !OPERATION_META[other.action]?.scalar,
+      )
+    )
+      add("请选择有效的发动对象组。");
+    if (
+      op.selection === "result" &&
+      !ops.slice(0, i).some((other) => other.uid === op.reference)
+    )
+      add("结果来源必须是前面的处理步骤。");
+    if (
+      OPERATION_META[op.action].scalar &&
+      ["target-group", "result"].includes(op.selection)
+    )
+      add("该处理不能引用卡片组。");
     if (!["always", "if-success", "if-failed"].includes(op.next))
       add("步骤衔接无效。");
     if (op.timing && !["separate", "together"].includes(op.timing))
@@ -253,7 +289,7 @@ export function validateOperations(block: EffectBlock): string[] {
         "declare-attribute",
       ].includes(op.action) &&
       !["field", "monster", "spelltrap"].includes(op.source) &&
-      op.selection !== "previous"
+      !["previous", "result", "target-group"].includes(op.selection)
     )
       add("该处理需要场上的卡。");
     if (
@@ -263,10 +299,7 @@ export function validateOperations(block: EffectBlock): string[] {
       add("装备自身需要选择另一只怪兽。");
     if (op.action === "control" && (op.amount !== 1 || op.selection === "all"))
       add("获得控制权每步支持 1 只怪兽。");
-    if (
-      op.action === "attach-material" &&
-      ["self", "previous"].includes(op.selection)
-    )
+    if (op.action === "attach-material" && op.selection === "self")
       add("叠放素材须选择此卡以外的卡。");
     if (op.action === "discard-hand" && op.selection === "target")
       add("手牌丢弃请使用处理时选择，不能选择隐藏手牌为对象。");
@@ -417,7 +450,248 @@ export function operationsHaveTarget(block: EffectBlock): boolean {
   );
 }
 
-/** One target group per chain; all other card selections happen during resolution. */
+/** Builds a jointly feasible assignment before offering any activation target. */
+function emitTargetGroups(
+  targeted: { op: EffectOperation; i: number }[],
+  block: EffectBlock,
+  fn: string,
+  func: (name: string, args: string, lines: string[]) => void,
+) {
+  const counts = targeted.map(({ op }) => op.amount).join(",");
+  const overlaps = targeted
+    .map(({ op }) => (op.targetOverlap === "allow" ? "true" : "false"))
+    .join(",");
+  func(`${fn}targetpool`, "e,tp", [
+    "local pool={}",
+    ...targeted.map(({ op, i }, n) => {
+      const exclude =
+        ["attach-material", "equip"].includes(op.action) ||
+        block.trigger === "activate"
+          ? "e:GetHandler()"
+          : "nil";
+      return `pool[${n + 1}]=Duel.GetMatchingGroup(function(c) return c:IsCanBeEffectTarget(e) and ${fn}step${i + 1}filter(c,e,tp) end,tp,${zonePair(op)},${exclude})`;
+    }),
+    "return pool",
+  ]);
+  func(`${fn}assignment`, "pool,picked", [
+    `local counts={${counts}}`,
+    `local overlap={${overlaps}}`,
+    "local allowcount=0",
+    "for i=1,#pool do if overlap[i] then allowcount=allowcount+1 end end",
+    "for i,g in ipairs(picked) do",
+    "\tfor j=1,i-1 do",
+    "\t\tif not (overlap[i] and overlap[j]) and g:IsExists(function(c) return picked[j]:IsContains(c) end,1,nil) then return false end",
+    "\tend",
+    "end",
+    "local function available(c,index)",
+    "\tfor j,g in ipairs(picked) do",
+    "\t\tif g:IsContains(c) and (j==index or not (overlap[index] and overlap[j])) then return false end",
+    "\tend",
+    "\treturn true",
+    "end",
+    // With at most one shareable group the problem is ordinary capacitated
+    // bipartite matching. Augmenting paths avoid exponential subset enumeration.
+    "if allowcount<=1 then",
+    "\tlocal fixed={} local owner={} local slots={}",
+    "\tfor i,g in ipairs(picked) do",
+    "\t\tfor c in aux.Next(g) do if fixed[c] then return false end fixed[c]=true end",
+    "\t\tfor n=g:GetCount()+1,counts[i] do slots[#slots+1]=i end",
+    "\tend",
+    "\tlocal function augment(slot,seen)",
+    "\t\tfor c in aux.Next(pool[slots[slot]]) do",
+    "\t\t\tif not fixed[c] and not seen[c] then",
+    "\t\t\t\tseen[c]=true",
+    "\t\t\t\tif not owner[c] or augment(owner[c],seen) then owner[c]=slot return true end",
+    "\t\t\tend",
+    "\t\tend",
+    "\t\treturn false",
+    "\tend",
+    "\tfor slot=1,#slots do if not augment(slot,{}) then return false end end",
+    "\treturn true",
+    "end",
+    // Shareable groups can share with one another, but never with exclusive
+    // groups. Only the exclusive assignments need searching.
+    "local function solve()",
+    "\tlocal choice=nil local choices=nil local slack=nil",
+    "\tfor i,g in ipairs(picked) do",
+    "\t\tlocal needed=counts[i]-g:GetCount()",
+    "\t\tlocal candidates=pool[i]:Filter(available,nil,i)",
+    "\t\tif candidates:GetCount()<needed then return false end",
+    "\t\tif not overlap[i] and needed>0 and (not slack or candidates:GetCount()-needed<slack) then",
+    "\t\t\tchoice=i choices=candidates slack=candidates:GetCount()-needed",
+    "\t\tend",
+    "\tend",
+    "\tif not choice then return true end",
+    "\tfor c in aux.Next(choices) do",
+    "\t\tpicked[choice]:AddCard(c)",
+    "\t\tlocal ok=solve()",
+    "\t\tpicked[choice]:RemoveCard(c)",
+    "\t\tif ok then return true end",
+    "\tend",
+    "\treturn false",
+    "end",
+    "return solve()",
+  ]);
+  func(`${fn}canselect`, "e,tp,chkc", [
+    `local pool=${fn}targetpool(e,tp)`,
+    "local picked={}",
+    "for i=1,#pool do picked[i]=Group.CreateGroup() end",
+    `if not chkc then return ${fn}assignment(pool,picked) end`,
+    "for i,g in ipairs(pool) do",
+    "\tif g:IsContains(chkc) then",
+    "\t\tpicked[i]:AddCard(chkc)",
+    `\t\tlocal ok=${fn}assignment(pool,picked)`,
+    "\t\tpicked[i]:RemoveCard(chkc)",
+    "\t\tif ok then return true end",
+    "\tend",
+    "end",
+    "return false",
+  ]);
+  func(`${fn}selecttargets`, "e,tp", [
+    `local pool=${fn}targetpool(e,tp)`,
+    "local picked={} local targets={} local combined=Group.CreateGroup()",
+    "for i=1,#pool do picked[i]=Group.CreateGroup() end",
+    ...targeted.flatMap(({ op }, index) => [
+      ...(targeted.length === 1
+        ? [
+            `Duel.Hint(HINT_SELECTMSG,tp,${OPERATION_META[op.action].hint})`,
+            `picked[1]=pool[1]:Select(tp,${op.amount},${op.amount},nil)`,
+          ]
+        : [
+            `for n=1,${op.amount} do`,
+            `\tlocal options=pool[${index + 1}]:Filter(function(c)`,
+            `\t\tif picked[${index + 1}]:IsContains(c) then return false end`,
+            `\t\tpicked[${index + 1}]:AddCard(c)`,
+            `\t\tlocal ok=${fn}assignment(pool,picked)`,
+            `\t\tpicked[${index + 1}]:RemoveCard(c)`,
+            "\t\treturn ok",
+            "\tend,nil)",
+            `\tDuel.Hint(HINT_SELECTMSG,tp,${OPERATION_META[op.action].hint})`,
+            `\tpicked[${index + 1}]:Merge(options:Select(tp,1,1,nil))`,
+            "end",
+          ]),
+      `targets[${JSON.stringify(op.uid)}]=picked[${index + 1}]`,
+      `picked[${index + 1}]:KeepAlive()`,
+      `combined:Merge(picked[${index + 1}])`,
+    ]),
+    "Duel.SetTargetCard(combined)",
+    "local chainid=Duel.GetChainInfo(0,CHAININFO_CHAIN_ID)",
+    "local cleanup={} local closed=false",
+    "local function close()",
+    "\tif closed then return end closed=true",
+    "\tfor _,g in pairs(targets) do g:DeleteGroup() end",
+    `\t${fn}contexts[chainid]=nil`,
+    "\tfor _,ce in ipairs(cleanup) do ce:Reset() end",
+    "end",
+    `for _,code in ipairs({EVENT_CHAIN_NEGATED,EVENT_CHAIN_DISABLED,EVENT_CHAIN_END}) do`,
+    "\tlocal ce=Effect.CreateEffect(e:GetHandler())",
+    "\tce:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)",
+    "\tce:SetCode(code)",
+    "\tce:SetOperation(function(_,_,_,_,ev)",
+    "\t\tif code==EVENT_CHAIN_END or Duel.GetChainInfo(ev,CHAININFO_CHAIN_ID)==chainid then close() end",
+    "\tend)",
+    "\tce:SetReset(RESET_CHAIN)",
+    "\tDuel.RegisterEffect(ce,tp)",
+    "\tcleanup[#cleanup+1]=ce",
+    "end",
+    `${fn}contexts[chainid]={targets=targets,close=close}`,
+    "return targets",
+  ]);
+}
+
+/** The core stores one operation-info entry per category; repeated calls overwrite. */
+function emitOperationInfo(ops: EffectOperation[]): string[] {
+  const buckets = new Map<string, EffectOperation[]>();
+  for (const op of ops) {
+    for (const category of OPERATION_META[op.action].category.split("+")) {
+      if (category === "0") continue;
+      buckets.set(category, [...(buckets.get(category) || []), op]);
+    }
+  }
+  const lines: string[] = [];
+  const numeric = new Set(["draw", "mill-top", "damage", "heal"]);
+  for (const [category, entries] of buckets) {
+    const conditional =
+      entries.length > 1 &&
+      entries.some((op) => op.optional || op.next !== "always");
+    const scopes = new Set(entries.map((op) => op.players));
+    const player =
+      scopes.has("both") || scopes.size > 1
+        ? "PLAYER_ALL"
+        : scopes.has("opponent")
+          ? "1-tp"
+          : "tp";
+    if (entries.every((op) => numeric.has(op.action))) {
+      const amountFor = (scope: "self" | "opponent") =>
+        entries.reduce(
+          (total, op) =>
+            total +
+            (op.players === scope || op.players === "both"
+              ? ["damage", "heal"].includes(op.action)
+                ? (op.value ?? 800)
+                : op.amount
+              : 0),
+          0,
+        );
+      const own = amountFor("self"),
+        opposing = amountFor("opponent");
+      // One slot cannot express different totals for each player. Zero means
+      // an unknown amount, rather than falsely reporting one player's total.
+      const value = conditional
+        ? 0
+        : player === "PLAYER_ALL"
+          ? own === opposing
+            ? own
+            : 0
+          : player === "tp"
+            ? own
+            : opposing;
+      lines.push(
+        `Duel.SetOperationInfo(0,${category},nil,0,${player},${value})`,
+      );
+      continue;
+    }
+    const groups: string[] = [];
+    let dynamic = conditional;
+    const zones = new Set<string>();
+    for (const op of entries) {
+      if (["negate-activation", "negate-effect"].includes(op.action))
+        groups.push("eg");
+      else {
+        zones.add(ZONE_LUA[op.source]);
+        if (op.selection === "target")
+          groups.push(`targets[${JSON.stringify(op.uid)}]`);
+        else if (op.selection === "target-group")
+          groups.push(`targets[${JSON.stringify(op.reference || "")}]`);
+        else if (op.selection === "self")
+          groups.push("Group.FromCards(e:GetHandler())");
+        else dynamic = true;
+      }
+    }
+    const location = [...zones].map((zone) => `(${zone})`).join("|") || "0";
+    if (dynamic) {
+      // A later selection/result can overlap earlier groups and can change
+      // cardinality. Do not publish a partial group as the complete target set.
+      const count =
+        entries.length === 1 && entries[0].selection === "select"
+          ? entries[0].amount
+          : 0;
+      lines.push(
+        `Duel.SetOperationInfo(0,${category},nil,${count},${player},${location})`,
+      );
+    } else {
+      lines.push("do", "\tlocal info=Group.CreateGroup()");
+      for (const group of new Set(groups)) lines.push(`\tinfo:Merge(${group})`);
+      lines.push(
+        `\tDuel.SetOperationInfo(0,${category},info,info:GetCount(),${player},${location})`,
+        "end",
+      );
+    }
+  }
+  return lines;
+}
+
+/** Target groups are isolated by chain ID, including multiple activations of the same Effect. */
 export function emitOperations(
   block: EffectBlock,
   fn: string,
@@ -429,17 +703,31 @@ export function emitOperations(
     functions.push(
       `function ${name}(${args})\n${lines.map((l) => `\t${l}`).join("\n")}\nend`,
     );
-  const checks: string[] = [],
-    targetLines: string[] = [];
-  const targeted = ops.findIndex(
-    (o) => o.selection === "target" && !OPERATION_META[o.action].scalar,
-  );
+  const checks: string[] = [];
+  const targeted = ops
+    .map((op, i) => ({ op, i }))
+    .filter(
+      ({ op }) =>
+        op.selection === "target" && !OPERATION_META[op.action].scalar,
+    );
+  const references = ["previous", "target-group", "result"];
+  if (targeted.length) {
+    functions.push(`${fn}contexts=${fn}contexts or {}`);
+    emitTargetGroups(targeted, block, fn, func);
+    checks.push(`${fn}canselect(e,tp)`);
+  }
   ops.forEach((op, i) => {
     const step = `${fn}step${i + 1}`,
-      filter = `${step}filter`,
-      category = OPERATION_META[op.action].category;
+      filter = `${step}filter`;
     const isScalar = OPERATION_META[op.action].scalar;
-    if (!isScalar) func(filter, "c,e,tp", [`return ${predicate(op)}`]);
+    const temporary = isTemporaryBanish(
+      block,
+      block.template === "sequence" ? op.uid : block.uid,
+    );
+    if (!isScalar)
+      func(filter, "c,e,tp", [
+        `return ${predicate(op)}${temporary ? " and c:IsOnField()" : ""}`,
+      ]);
     // Necrovalley is tested during resolution; its presence does not forbid targeting.
     const resolutionFilter = op.source.includes("grave")
       ? `aux.NecroValleyFilter(${filter})`
@@ -452,7 +740,7 @@ export function emitOperations(
         : "nil";
     const exist = isScalar
       ? scalarCheck(op)!
-      : op.selection === "previous"
+      : references.includes(op.selection)
         ? "true"
         : op.selection === "self"
           ? `${filter}(e:GetHandler(),e,tp)`
@@ -460,23 +748,12 @@ export function emitOperations(
     const check = `${extraCheck(op)}${exist}`;
     // Mandatory independent steps must be possible when the effect is activated.
     if (
-      i === targeted ||
-      (!op.optional && op.next === "always" && op.selection !== "previous")
+      op.selection === "target" ||
+      (!op.optional &&
+        op.next === "always" &&
+        !references.includes(op.selection))
     )
       checks.push(`(${check})`);
-    if (i === targeted) {
-      const owner =
-        op.players === "both"
-          ? ""
-          : ` and chkc:IsControler(${op.players === "self" ? "tp" : "1-tp"})`;
-      targetLines.unshift(
-        `if chkc then return chkc:IsLocation(${ZONE_LUA[op.source]})${owner}${exclude !== "nil" ? ` and chkc~=${exclude}` : ""} and ${filter}(chkc,e,tp) end`,
-      );
-      targetLines.push(
-        `Duel.Hint(HINT_SELECTMSG,tp,${OPERATION_META[op.action].hint})`,
-        `local targets=Duel.SelectTarget(tp,${filter},tp,${zonePair(op)},${op.amount},${op.amount},${exclude},e,tp)`,
-      );
-    }
     const opLines: string[] = [];
     if (isScalar) {
       if (["negate-activation", "negate-effect"].includes(op.action)) {
@@ -530,14 +807,17 @@ export function emitOperations(
         );
       if (op.selection === "target")
         opLines.push(
-          "local g=Duel.GetChainInfo(0,CHAININFO_TARGET_CARDS)",
+          `local g=targets[${JSON.stringify(op.uid)}]`,
           "if not g then return false,nil end",
-          "g=g:Filter(Card.IsRelateToEffect,nil,e)",
+          "g=g:Filter(Card.IsRelateToChain,nil,Duel.GetCurrentChain())",
         );
-      else if (op.selection === "previous")
+      else if (references.includes(op.selection))
         opLines.push(
-          "local g=previous",
+          `local g=${op.selection === "previous" ? "previous" : `${op.selection === "result" ? "results" : "targets"}[${JSON.stringify(op.reference || "")}]`}`,
           "if not g then return false,nil end",
+          ...(op.selection === "target-group"
+            ? ["g=g:Filter(Card.IsRelateToChain,nil,Duel.GetCurrentChain())"]
+            : []),
           `g=g:Filter(function(c) return c:IsLocation(${ZONE_LUA[op.source]})${op.players === "both" ? "" : ` and c:IsControler(${op.players === "self" ? "tp" : "1-tp"})`} and ${resolutionFilter}(c,e,tp) end,nil)`,
         );
       else if (op.selection === "self")
@@ -557,41 +837,41 @@ export function emitOperations(
         );
       if (
         op.source.includes("grave") &&
-        ["target", "previous"].includes(op.selection)
+        ["target", ...references].includes(op.selection)
       )
         opLines.push("g=g:Filter(aux.NecroValleyFilter(),nil)");
       opLines.push("if g:GetCount()==0 then return false,g end");
-      opLines.push(...cardOperation(op));
+      opLines.push(...cardOperation(op, temporary));
     }
-    func(step, `${base},previous`, opLines);
-    if (category !== "0") {
-      const p =
-        op.players === "both"
-          ? "PLAYER_ALL"
-          : op.players === "opponent"
-            ? "1-tp"
-            : "tp";
-      const value = ["damage", "heal"].includes(op.action)
-        ? (op.value ?? 800)
-        : isScalar
-          ? op.amount
-          : ZONE_LUA[op.source];
-      for (const bit of category.split("+"))
-        targetLines.push(
-          ["negate-activation", "negate-effect"].includes(op.action)
-            ? `Duel.SetOperationInfo(0,${bit},eg,1,0,0)`
-            : `Duel.SetOperationInfo(0,${bit},${i === targeted ? "targets" : "nil"},${isScalar ? 0 : op.amount},${p},${value})`,
-        );
-    }
+    func(step, `${base},previous,targets,results`, opLines);
   });
-  const chkcGuard =
-    targeted >= 0 ? targetLines.shift()! : "if chkc then return false end";
+  const chkcGuard = targeted.length
+    ? `if chkc then return ${fn}canselect(e,tp,chkc) end`
+    : "if chkc then return false end";
   func(`${fn}target`, `${base},chk,chkc`, [
     chkcGuard,
     `if chk==0 then return ${checks.join(" and ") || "true"} end`,
-    ...targetLines,
+    ...(targeted.length ? [`local targets=${fn}selecttargets(e,tp)`] : []),
+    ...emitOperationInfo(ops),
   ]);
-  const runner = ["local success=true", "local previous=nil"];
+  const runner = [
+    "local success=true",
+    "local previous=nil",
+    "local results={}",
+    ...(targeted.length
+      ? [
+          "local chainid=Duel.GetChainInfo(0,CHAININFO_CHAIN_ID)",
+          `local context=${fn}contexts[chainid]`,
+          "local targets={}",
+          "if context then for key,g in pairs(context.targets) do targets[key]=g end end",
+          ...(targeted.length === 1
+            ? [
+                `targets[${JSON.stringify(targeted[0].op.uid)}]=Duel.GetChainInfo(0,CHAININFO_TARGET_CARDS)`,
+              ]
+            : []),
+        ]
+      : ["local targets={}"]),
+  ];
   ops.forEach((op, i) => {
     const condition = [
       op.next === "if-success"
@@ -606,17 +886,27 @@ export function emitOperations(
     runner.push(
       `if ${condition} then`,
       ...(i && op.timing !== "together" ? ["\tDuel.BreakEffect()"] : []),
-      `\tsuccess,previous=${fn}step${i + 1}(${base},previous)`,
+      `\tsuccess,previous=${fn}step${i + 1}(${base},previous,targets,results)`,
+      "\tif not success then previous=nil end",
+      `\tif previous then previous:KeepAlive() results[${JSON.stringify(op.uid)}]=previous end`,
+      ...emitTrackingRegistration(
+        block,
+        descriptionIndex,
+        block.template === "sequence" ? op.uid : block.uid,
+        "previous",
+      ).map((line) => `\t${line}`),
       "else",
       "\tsuccess=false",
       "\tprevious=nil",
       "end",
     );
   });
+  runner.push("for _,g in pairs(results) do g:DeleteGroup() end");
+  if (targeted.length) runner.push("if context then context.close() end");
   func(`${fn}operation`, base, runner);
   return functions;
 }
-function cardOperation(op: EffectOperation): string[] {
+function cardOperation(op: EffectOperation, temporary = false): string[] {
   const action = op.action,
     reset = `RESET_EVENT+RESETS_STANDARD${op.duration === "permanent" ? "" : "+RESET_PHASE+PHASE_END"}`;
   const moved = (expression: string, destination?: string) => [
@@ -647,7 +937,10 @@ function cardOperation(op: EffectOperation): string[] {
       "LOCATION_GRAVE",
     );
   if (action === "banish")
-    return moved("Duel.Remove(g,POS_FACEUP,REASON_EFFECT)", "LOCATION_REMOVED");
+    return moved(
+      `Duel.Remove(g,POS_FACEUP,REASON_EFFECT${temporary ? "+REASON_TEMPORARY" : ""})`,
+      "LOCATION_REMOVED",
+    );
   if (action === "to-deck")
     return moved(
       `Duel.SendtoDeck(g,nil,${op.destination === "top" ? 0 : op.destination === "bottom" ? 1 : 2},REASON_EFFECT)`,

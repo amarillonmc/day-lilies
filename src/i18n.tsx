@@ -10,6 +10,10 @@ import {
 import { uiTranslations } from "./uiTranslations";
 import { effectTranslations } from "./effectTranslations";
 import { diagnosticTranslations } from "./diagnosticTranslations";
+import { summonTranslations } from "./summonTranslations";
+import { targetTranslations } from "./targetTranslations";
+import { trackingTranslations } from "./trackingTranslations";
+import { workflowTranslations } from "./workflowTranslations";
 
 export type UiLanguage = "zh-CN" | "en" | "ja";
 export type TranslationParams = Record<string, string | number>;
@@ -23,6 +27,10 @@ const messages: Record<string, readonly [string, string]> = {
   ...uiTranslations,
   ...effectTranslations,
   ...diagnosticTranslations,
+  ...summonTranslations,
+  ...targetTranslations,
+  ...trackingTranslations,
+  ...workflowTranslations,
 };
 const normalize = (text: string) => text.replace(/\s+/g, " ").trim();
 const interpolate = (text: string, params: TranslationParams) =>

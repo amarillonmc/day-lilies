@@ -1898,3 +1898,30 @@ html[lang="en"] .brand {
     scroll-behavior: auto !important;
   }
 }
+.advanced-options {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.advanced-options > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.advanced-options > p,
+.advanced-options .muted {
+  margin: 10px 0 16px;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+.operation-step-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.summoning-editor .form-section,
+.details .form-section {
+  margin-top: 16px;
+}

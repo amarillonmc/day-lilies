@@ -2,6 +2,7 @@ import { useI18n } from "../i18n";
 import { ImagePlus, X } from "lucide-react";
 import type { Card, CardProject } from "../domain/model";
 import { Field, NumberInput, Select } from "./Fields";
+import { SummonProcedureEditor } from "./SummonProcedureEditor";
 import {
   ATTRIBUTES,
   KINDS,
@@ -340,102 +341,13 @@ export default function CardEditor({
         />
       </details>
       {["synchro", "xyz", "link", "fusion"].includes(card.kind) && (
-        <details className="details" open>
-          <summary>{t("基本召唤手续")}</summary>
-          <div className="form-grid">
-            <Field label="手续">
-              <Select
-                value={card.procedure.mode}
-                options={[
-                  ["none", "自定义 Lua 中处理"],
-                  ["synchro", "1 调整 + 非调整"],
-                  ["xyz", "同等级怪兽超量召唤"],
-                  ["link", "效果怪兽连接召唤"],
-                  ["fusion", "指定卡名融合素材"],
-                ]}
-                onChange={(mode) =>
-                  onChange({
-                    procedure: { ...card.procedure, mode },
-                    reviewRequired: true,
-                  })
-                }
-              />
-            </Field>
-            {card.procedure.mode === "fusion" ? (
-              <Field label="素材卡号（2–4 张，逗号分隔）">
-                <input
-                  key={card.uid + ":materials"}
-                  defaultValue={card.procedure.materialCodes.join(",")}
-                  onBlur={(e) =>
-                    onChange({
-                      procedure: {
-                        ...card.procedure,
-                        materialCodes: e.target.value
-                          .split(/[,，\s]+/)
-                          .filter(Boolean)
-                          .map(Number),
-                      },
-                      reviewRequired: true,
-                    })
-                  }
-                />
-              </Field>
-            ) : (
-              <>
-                <Field label="素材总数下限">
-                  <NumberInput
-                    value={card.procedure.min}
-                    min={2}
-                    onChange={(min) =>
-                      onChange({
-                        procedure: {
-                          ...card.procedure,
-                          min,
-                          max:
-                            card.procedure.mode === "xyz"
-                              ? min
-                              : Math.max(min, card.procedure.max),
-                        },
-                        reviewRequired: true,
-                      })
-                    }
-                  />
-                </Field>
-                {card.procedure.mode !== "xyz" && (
-                  <Field label="素材总数上限">
-                    <NumberInput
-                      value={card.procedure.max}
-                      min={card.procedure.min}
-                      onChange={(max) =>
-                        onChange({
-                          procedure: { ...card.procedure, max },
-                          reviewRequired: true,
-                        })
-                      }
-                    />
-                  </Field>
-                )}
-                {card.procedure.mode === "xyz" && (
-                  <Field label="素材等级">
-                    <NumberInput
-                      value={card.procedure.materialLevel}
-                      min={1}
-                      onChange={(materialLevel) =>
-                        onChange({
-                          procedure: { ...card.procedure, materialLevel },
-                          reviewRequired: true,
-                        })
-                      }
-                    />
-                  </Field>
-                )}
-              </>
-            )}
-          </div>
-          <p className="field-help">
-            {t("复合素材条件、特殊召唤限制或替代手续请使用完整 Lua。")}
-          </p>
-        </details>
+        <SummonProcedureEditor
+          card={card}
+          project={project}
+          onChange={(procedure) =>
+            onChange({ procedure, reviewRequired: true })
+          }
+        />
       )}
       <div className="section-label">
         <span>03</span>

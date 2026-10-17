@@ -105,7 +105,7 @@ describe("OCG template compilation", () => {
     const { card, project, block } = setup("revive");
     block.amount = 2;
     expect(
-      errors(card, project).some((d) => d.message.includes("只支持 1 张")),
+      errors(card, project).some((d) => d.message.includes("支持 1 张")),
     ).toBe(true);
     block.amount = 1;
     block.source = "deck";

@@ -86,6 +86,7 @@ const filter = z.object({
   maxLink: nonnegative.optional(),
   tuner: z.boolean().optional(),
   extraDeck: z.boolean().optional(),
+  effect: z.boolean().optional(),
   expression: z.string().max(20000).optional(),
 });
 const operation = z.object({
@@ -95,7 +96,18 @@ const operation = z.object({
   source: sourceZone,
   players: playerScope,
   filter,
-  selection: z.enum(["target", "select", "all", "self", "previous"]),
+  selection: z.enum([
+    "target",
+    "select",
+    "all",
+    "self",
+    "previous",
+    "target-group",
+    "result",
+  ]),
+  targetName: z.string().max(80).optional(),
+  targetOverlap: z.enum(["allow", "disallow"]).optional(),
+  reference: z.string().min(1).optional(),
   next: z.enum(["always", "if-success", "if-failed"]),
   timing: z.enum(["separate", "together"]).optional(),
   optional: z.boolean(),
@@ -163,6 +175,7 @@ const effect = z.object({
     "declare-race",
     "declare-attribute",
     "sequence",
+    "summoning",
     "custom-effect",
   ]),
   trigger: z.enum([
@@ -219,6 +232,55 @@ const effect = z.object({
   ...operationOptions,
   operations: z.array(operation).max(16).optional(),
   advanced: advanced.optional(),
+  tracking: z
+    .array(
+      z.object({
+        uid: z.string().min(1),
+        sourceStep: z.string().min(1),
+        phase: z.enum(["standby", "end"]),
+        schedule: z.enum(["this-turn", "next-turn", "next-matching"]),
+        turnPlayer: z.enum(["either", "self", "opponent"]),
+        action: z.enum([
+          "bounce",
+          "to-deck",
+          "destroy",
+          "banish",
+          "send-grave",
+          "return-temporary",
+        ]),
+        resolution: z.enum(["continuous", "trigger"]),
+        validity: z.enum(["any", "all"]),
+        resetOnMove: z.boolean(),
+        destination: z.enum(["shuffle", "top", "bottom"]).optional(),
+        position: z
+          .enum([
+            "original",
+            "faceup-attack",
+            "faceup-defense",
+            "facedown-defense",
+          ])
+          .optional(),
+      }),
+    )
+    .max(8)
+    .optional(),
+  summoning: z
+    .object({
+      kind: z.enum(["fusion", "ritual"]),
+      monsterFilter: filter,
+      materialFilter: filter,
+      materialSource: z.enum([
+        "hand-field",
+        "field",
+        "hand",
+        "hand-field-grave",
+      ]),
+      ritualLevel: z.enum(["original", "current", "fixed"]).optional(),
+      ritualFixedLevel: positive.max(13).optional(),
+      ritualComparison: z.enum(["equal", "at-least"]).optional(),
+      ritualSummonFrom: z.enum(["hand", "hand-grave"]).optional(),
+    })
+    .optional(),
 });
 const procedure = z.object({
   mode: z.enum(["none", "synchro", "xyz", "link", "fusion"]),
@@ -226,6 +288,24 @@ const procedure = z.object({
   max: number,
   materialLevel: number,
   materialCodes: z.array(number),
+  tunerCount: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
+  tunerFilter: filter.optional(),
+  nonTunerFilter: filter.optional(),
+  materialFilter: filter.optional(),
+  xyzAlternative: z.object({ filter, description: positive }).optional(),
+  fusionSlots: z
+    .array(
+      z.object({
+        kind: z.enum(["code", "filter"]),
+        code: positive.optional(),
+        filter,
+        min: positive.max(8),
+        max: positive.max(8),
+      }),
+    )
+    .max(8)
+    .optional(),
+  fusionSubstitute: z.boolean().optional(),
 });
 const card = z.object({
   uid: z.string().min(1),
@@ -341,6 +421,12 @@ export function parseNativeProject(value: unknown): CardProject {
         if (operations.has(step.uid))
           throw new Error(`${current.name} 含有重复的处理内部 ID。`);
         operations.add(step.uid);
+      }
+      const tracking = new Set<string>();
+      for (const rule of block.tracking || []) {
+        if (tracking.has(rule.uid))
+          throw new Error(`${current.name} 含有重复的追踪内部 ID。`);
+        tracking.add(rule.uid);
       }
     }
   }

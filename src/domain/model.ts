@@ -53,6 +53,7 @@ export type TemplateId =
   | "declare-race"
   | "declare-attribute"
   | "sequence"
+  | "summoning"
   | "custom-effect";
 export type Trigger =
   | "activate"
@@ -121,15 +122,17 @@ export interface CardFilter {
   maxLink?: number;
   tuner?: boolean;
   extraDeck?: boolean;
+  /** Restrict to effect / non-effect monsters, including Extra Deck monsters. */
+  effect?: boolean;
   /** Additional predicate body expression; variables c,e,tp are available. */
   expression?: string;
 }
 export type OperationAction = Exclude<
   TemplateId,
-  "self-summon" | "sequence" | "custom-effect"
+  "self-summon" | "sequence" | "custom-effect" | "summoning"
 >;
 export type OperationSelection =
-  "target" | "select" | "all" | "self" | "previous";
+  "target" | "select" | "all" | "self" | "previous" | "target-group" | "result";
 export type OperationPosition =
   "faceup-attack" | "faceup-defense" | "facedown-defense";
 export interface OperationOptions {
@@ -147,6 +150,12 @@ export interface EffectOperation extends OperationOptions {
   players: PlayerScope;
   filter: CardFilter;
   selection: OperationSelection;
+  /** Display name for an independently selected activation target group. */
+  targetName?: string;
+  /** Sharing a card requires both target groups to allow overlap. */
+  targetOverlap?: "allow" | "disallow";
+  /** Stable operation uid: a target group or an earlier operation's actual result. */
+  reference?: string;
   /** Each step depends on the immediately preceding step's actual result. */
   next: "always" | "if-success" | "if-failed";
   timing?: "separate" | "together";
@@ -178,6 +187,30 @@ export interface AdvancedEffect {
     >
   >;
 }
+/** A one-shot phase action using a completed operation's actual result cards. */
+export interface DelayedTracking {
+  uid: string;
+  /** An operation UID, or "last" for the final configured operation. */
+  sourceStep: string;
+  phase: "standby" | "end";
+  schedule: "this-turn" | "next-turn" | "next-matching";
+  turnPlayer: "either" | "self" | "opponent";
+  action:
+    | "bounce"
+    | "to-deck"
+    | "destroy"
+    | "banish"
+    | "send-grave"
+    | "return-temporary";
+  /** Phase handling without a chain, or a mandatory phase trigger. */
+  resolution: "continuous" | "trigger";
+  validity: "any" | "all";
+  /** Invalidate the tracked instance when it moves or is turned face-down. */
+  resetOnMove: boolean;
+  destination?: "shuffle" | "top" | "bottom";
+  position?:
+    "original" | "faceup-attack" | "faceup-defense" | "facedown-defense";
+}
 export interface EffectBlock extends OperationOptions {
   uid: string;
   template: TemplateId;
@@ -200,6 +233,8 @@ export interface EffectBlock extends OperationOptions {
   range?: "field" | "hand" | "grave" | "banished";
   operations?: EffectOperation[];
   advanced?: AdvancedEffect;
+  summoning?: SummoningEffect;
+  tracking?: DelayedTracking[];
 }
 export interface SummonProcedure {
   mode: "none" | "synchro" | "xyz" | "link" | "fusion";
@@ -207,6 +242,30 @@ export interface SummonProcedure {
   max: number;
   materialLevel: number;
   materialCodes: number[];
+  tunerCount?: 1 | 2 | 3;
+  tunerFilter?: CardFilter;
+  nonTunerFilter?: CardFilter;
+  materialFilter?: CardFilter;
+  xyzAlternative?: { filter: CardFilter; description: number };
+  fusionSlots?: FusionMaterialSlot[];
+  fusionSubstitute?: boolean;
+}
+export interface FusionMaterialSlot {
+  kind: "code" | "filter";
+  code?: number;
+  filter: CardFilter;
+  min: number;
+  max: number;
+}
+export interface SummoningEffect {
+  kind: "fusion" | "ritual";
+  monsterFilter: CardFilter;
+  materialFilter: CardFilter;
+  materialSource: "hand-field" | "field" | "hand" | "hand-field-grave";
+  ritualLevel?: "original" | "current" | "fixed";
+  ritualFixedLevel?: number;
+  ritualComparison?: "equal" | "at-least";
+  ritualSummonFrom?: "hand" | "hand-grave";
 }
 export interface Card {
   uid: string;
@@ -401,6 +460,16 @@ export function createEffect(
       : {}),
     ...(template === "sequence"
       ? { operations: [createOperation("draw")] }
+      : {}),
+    ...(template === "summoning"
+      ? {
+          summoning: {
+            kind: "fusion" as const,
+            monsterFilter: { kind: "monster" as const },
+            materialFilter: { kind: "monster" as const },
+            materialSource: "hand-field" as const,
+          },
+        }
       : {}),
     ...(template === "custom-effect"
       ? {

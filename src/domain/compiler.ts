@@ -1,4 +1,10 @@
 import luaparse from "luaparse";
+import {
+  emitSummonProcedure,
+  validateSummonProcedure,
+  emitSummoning,
+  validateSummoning,
+} from "./summon-procedures";
 import type {
   Card,
   CardProject,
@@ -25,6 +31,7 @@ import {
   findUnsupportedCoreSymbols,
   KOISHI_CAPABILITIES,
 } from "./engine-capabilities";
+import { emitTrackingFunctions, validateTracking } from "./tracking";
 
 const targeted = new Set([
   "recover",
@@ -353,34 +360,11 @@ function validateCard(card: Card, target: TargetCore = "ygopro"): Diagnostic[] {
     add("error", `请配置${card.kind}对应的额外召唤手续，或使用自定义 Lua。`);
   if (!extraKinds.has(card.kind) && card.procedure.mode !== "none")
     add("error", "当前卡种与额外召唤手续不一致。");
-  const proc = card.procedure;
-  if (proc.mode !== "none") {
-    if (!integer(proc.min, 1, 8) || !integer(proc.max, proc.min, 8))
-      add("error", "素材数范围须为 1–8，最大数不能小于最小数。");
-    if (proc.mode === "synchro" && proc.min < 2)
-      add("error", "同调手续需要 1 只调整及至少 1 只非调整。");
-    if (
-      proc.mode === "xyz" &&
-      (proc.min !== proc.max || !integer(proc.materialLevel, 1, 13))
-    )
-      add("error", "首版超量手续使用固定素材数和 1–13 的素材等级。");
-    if (
-      proc.mode === "link" &&
-      (proc.min > card.level || proc.max > card.level)
-    )
-      add("error", "连接素材数量不能超过 LINK 值。");
-    if (
-      proc.mode === "fusion" &&
-      (proc.materialCodes.length < 2 ||
-        proc.materialCodes.length > 4 ||
-        proc.materialCodes.some((n) => !validCode(n)))
-    )
-      add("error", "融合手续需要 2–4 个有效的指定素材卡号。");
-  }
+  for (const message of validateSummonProcedure(card)) add("error", message);
   if (card.kind === "ritual")
     add(
       "warning",
-      "仪式怪兽生成苏生限制；仪式召唤魔法／效果请另外配置自定义 Lua。",
+      "仪式怪兽生成苏生限制；请在仪式魔法／效果上配置融合／仪式召唤积木。",
     );
   if (
     isSpellTrap(card) &&
@@ -388,12 +372,16 @@ function validateCard(card: Card, target: TargetCore = "ygopro"): Diagnostic[] {
     !card.effects.some(
       (b) =>
         b.template === "custom-effect" ||
-        b.template === "equip" ||
-        (b.template === "sequence" &&
+        (card.subtype === "ritual" &&
+          b.template === "summoning" &&
+          b.summoning?.kind === "ritual") ||
+        (card.subtype === "equip" && b.template === "equip") ||
+        (card.subtype === "equip" &&
+          b.template === "sequence" &&
           b.operations?.some((op) => op.action === "equip")),
     )
   )
-    add("error", "装备／仪式魔法需要专用处理，首版请使用自定义 Lua。");
+    add("error", "装备魔法需要装备处理；仪式魔法需要仪式召唤处理。");
   const activations = card.effects.filter(
     (b) =>
       (b.trigger === "activate" ||
@@ -474,7 +462,7 @@ function validateCard(card: Card, target: TargetCore = "ygopro"): Diagnostic[] {
     )
       add(
         "error",
-        "该模板首版只支持 1 张；多对象或同时特召请使用自定义 Lua。",
+        "此单步模板支持 1 张卡；多对象请使用复合效果，批量特殊召唤仍需高级回调。",
         block,
       );
     if (
@@ -497,6 +485,8 @@ function validateCard(card: Card, target: TargetCore = "ygopro"): Diagnostic[] {
       ...validateFilterExtra(f),
       ...validateOperations(block),
       ...validateAdvanced(block),
+      ...validateSummoning(block),
+      ...validateTracking(block),
     ])
       add("error", error, block);
     if (f.setcode != null && !integer(f.setcode, 1, 65535))
@@ -790,9 +780,11 @@ function emitBlock(
         ]
           .filter(Boolean)
           .join("+")
-      : usesOperations(block)
-        ? operationCategory(block)
-        : meta[block.template].category;
+      : block.template === "summoning"
+        ? emitSummoning(block, fn, index).category
+        : usesOperations(block)
+          ? operationCategory(block)
+          : meta[block.template].category;
   init.push(`${ev}:SetCategory(${category})`);
   const properties =
     targeted.has(block.template) ||
@@ -938,11 +930,17 @@ function emitBlock(
       `${ev}b:SetCode(EVENT_SPSUMMON_SUCCESS)`,
       `c:RegisterEffect(${ev}b)`,
     );
+  if (block.template === "summoning") {
+    const summoning = emitSummoning(block, fn, index);
+    funcs.push(...summoning.funcs);
+    return { init, funcs };
+  }
   if (usesOperations(block)) {
     for (const op of blockOperations(block))
       if (op.action === "add-counter" && op.selection === "self")
         init.unshift(`c:EnableCounterPermit(${op.counterType ?? 0x1001})`);
     funcs.push(...emitOperations(block, fn, index));
+    funcs.push(...emitTrackingFunctions(block, index));
     return { init, funcs };
   }
   if (block.template === "draw") {
@@ -1086,21 +1084,9 @@ export function compileCard(card: Card, project: CardProject): CompileResult {
     init.push(
       `aux.EnablePendulumAttribute(c,${card.effects.some((b) => b.scope === "pendulum" && b.trigger === "activate") ? "false" : "true"})`,
     );
-  const proc = card.procedure;
-  if (proc.mode !== "none" || card.kind === "ritual")
-    init.push("c:EnableReviveLimit()");
-  if (proc.mode === "synchro")
-    init.push(
-      `aux.AddSynchroProcedure(c,nil,aux.NonTuner(nil),${proc.min - 1},${proc.max - 1})`,
-    );
-  if (proc.mode === "xyz")
-    init.push(`aux.AddXyzProcedure(c,nil,${proc.materialLevel},${proc.min})`);
-  if (proc.mode === "link")
-    init.push(`aux.AddLinkProcedure(c,nil,${proc.min},${proc.max})`);
-  if (proc.mode === "fusion")
-    init.push(
-      `aux.AddFusionProcMix(c,true,true,${proc.materialCodes.join(",")})`,
-    );
+  const summon = emitSummonProcedure(card);
+  init.push(...summon.init);
+  functions.push(...summon.funcs);
   if (
     isSpellTrap(card) &&
     !card.effects.some(
@@ -1146,6 +1132,12 @@ export function compileCard(card: Card, project: CardProject): CompileResult {
   const lua = `-- ${title}\n-- Generated by Day Lilies. Target: ${project.target}; author must playtest.\nlocal s,id,o=GetID()\n${extensionConstants}function s.initial_effect(c)\n${init.map((line) => `\t${line}`).join("\n")}\nend\n\n${functions.join("\n\n")}\n`;
   try {
     luaparse.parse(lua, { luaVersion: "5.3" });
+    for (const symbol of findUnsupportedCoreSymbols(lua, project.target))
+      diagnostics.push({
+        severity: "error",
+        cardUid: card.uid,
+        message: `${symbol} 是 KoishiPRO 专有能力，上游 YGOPRO 目标不支持。`,
+      });
   } catch (error) {
     diagnostics.push({
       severity: "error",

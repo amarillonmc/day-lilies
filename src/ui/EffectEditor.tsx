@@ -4,7 +4,6 @@ import { TEMPLATES, TRIGGERS } from "../domain/catalog";
 import {
   createEffect,
   createOperation,
-  uid,
   type Card,
   type CardProject,
   type CostKind,
@@ -18,6 +17,10 @@ import { COSTS, COUNTS } from "./options";
 import { Field, NumberInput, Select } from "./Fields";
 import { EffectOperationFields } from "./EffectOperationFields";
 import { AdvancedEffectEditor } from "./AdvancedEffectEditor";
+import { SummoningEffectEditor } from "./SummonProcedureEditor";
+import { defaultSummoning } from "../domain/summon-procedures";
+import { TrackingEditor } from "./TrackingEditor";
+import { cloneEffect } from "../domain/effect-editing";
 
 const categories: [string, string, TemplateId[]][] = [
   [
@@ -50,7 +53,14 @@ const categories: [string, string, TemplateId[]][] = [
   [
     "summon",
     "召唤与素材",
-    ["revive", "summon", "self-summon", "attach-material", "detach-material"],
+    [
+      "revive",
+      "summon",
+      "self-summon",
+      "summoning",
+      "attach-material",
+      "detach-material",
+    ],
   ],
   [
     "battle",
@@ -81,7 +91,9 @@ const allCosts: [CostKind, string][] = [
 ];
 const actionTemplates = TEMPLATES.filter(
   (template) =>
-    !["self-summon", "sequence", "custom-effect"].includes(template.id),
+    !["self-summon", "sequence", "custom-effect", "summoning"].includes(
+      template.id,
+    ),
 );
 
 export default function EffectEditor({
@@ -174,6 +186,7 @@ export default function EffectEditor({
       {card.effects.map((effect, index) => {
         const isCustom = effect.template === "custom-effect";
         const isSequence = effect.template === "sequence";
+        const isSummoning = effect.template === "summoning";
         const isProcedure = effect.template === "self-summon";
         const operations = effect.operations || [];
         const updateOperation = (
@@ -227,21 +240,7 @@ export default function EffectEditor({
                 aria-label={t("复制效果")}
                 onClick={() =>
                   onChange({
-                    effects: [
-                      ...card.effects,
-                      {
-                        ...structuredClone(effect),
-                        uid: uid(),
-                        ...(effect.operations
-                          ? {
-                              operations: effect.operations.map((step) => ({
-                                ...structuredClone(step),
-                                uid: uid(),
-                              })),
-                            }
-                          : {}),
-                      },
-                    ],
+                    effects: [...card.effects, cloneEffect(effect)],
                     reviewRequired: true,
                   })
                 }
@@ -416,7 +415,7 @@ export default function EffectEditor({
                 </>
               )}
             </div>
-            {!isCustom && !isProcedure && !isSequence && (
+            {!isCustom && !isProcedure && !isSequence && !isSummoning && (
               <EffectOperationFields
                 value={effect}
                 action={effect.template as OperationAction}
@@ -429,7 +428,7 @@ export default function EffectEditor({
                 <h4>{t("顺序处理")}</h4>
                 <p className="effect-help">
                   {t(
-                    "按顺序执行最多 16 步；只能有一步在发动时取对象，后续可沿用上一组卡。条件分支依据上一步的实际处理结果。",
+                    "按顺序执行最多 16 步；可分别选择多组对象，并引用任意对象组或较早步骤的实际结果。条件分支依据上一步的实际处理结果。",
                   )}
                 </p>
                 {operations.map((step, operationIndex) => (
@@ -522,10 +521,8 @@ export default function EffectEditor({
                       project={project}
                       sequence
                       firstStep={operationIndex === 0}
-                      anotherTarget={operations.some(
-                        (other, i) =>
-                          i !== operationIndex && other.selection === "target",
-                      )}
+                      operations={operations}
+                      stepIndex={operationIndex}
                       onChange={(patch) =>
                         updateOperation(operationIndex, patch)
                       }
@@ -558,6 +555,19 @@ export default function EffectEditor({
                   {t("添加后续处理")}
                 </button>
               </div>
+            )}
+            {isSummoning && (
+              <SummoningEffectEditor
+                value={effect.summoning || defaultSummoning()}
+                project={project}
+                onChange={(summoning) => update(index, { summoning })}
+              />
+            )}
+            {!isCustom && !isProcedure && !isSummoning && (
+              <TrackingEditor
+                block={effect}
+                onChange={(tracking) => update(index, { tracking })}
+              />
             )}
             {isCustom && (
               <AdvancedEffectEditor

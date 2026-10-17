@@ -37,13 +37,13 @@ describe("composable effect operations", () => {
     expect(result.strings).toHaveLength(1);
     expect(block.template).toBe("sequence");
   });
-  it("rejects ambiguous multiple target groups and unsupported simultaneous summons", () => {
+  it("accepts independent target groups but rejects unsupported simultaneous summons", () => {
     const { card, project, ops } = sequence("destroy", "banish");
     expect(
-      compileCard(card, project).diagnostics.some((d) =>
-        d.message.includes("一组对象"),
+      compileCard(card, project).diagnostics.filter(
+        (d) => d.severity === "error",
       ),
-    ).toBe(true);
+    ).toEqual([]);
     ops[1].selection = "previous";
     expect(
       compileCard(card, project).diagnostics.filter(

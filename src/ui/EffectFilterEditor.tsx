@@ -52,6 +52,27 @@ export function EffectFilterEditor({
             onChange={(kind) => update({ kind })}
           />
         </Field>
+        <Field label="怪兽效果类型">
+          <Select
+            value={
+              filter.effect == null
+                ? "any"
+                : filter.effect
+                  ? "effect"
+                  : "non-effect"
+            }
+            options={[
+              ["any", "不限定效果类型"],
+              ["effect", "效果怪兽"],
+              ["non-effect", "非效果怪兽"],
+            ]}
+            onChange={(value) =>
+              update({
+                effect: value === "any" ? undefined : value === "effect",
+              })
+            }
+          />
+        </Field>
         <Field label="系列">
           <select
             value={filter.setcode || 0}
